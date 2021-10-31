@@ -48,14 +48,23 @@ struct void_inspector {
  * @tparam mask_container provides the object masks
  * @tparam inspector_type is a validation inspector
  */
+
+template < template < typename ... > class vector_type = dvector,
+           typename volume_type, typename object_type, typename transform_type,
+           typename... mask_types,
+           typename inspector_type = void_inspector >
+/*           
 template <typename volume_container, typename object_container,
           typename transform_container, typename mask_container,
           typename inspector_type = void_inspector>
+          */
 class single_type_navigator {
 
     public:
-    using object_t = typename object_container::value_type;
-    using link_t = typename object_t::edge_links;
+    //using object_t = typename object_container::value_type;
+    //using link_t = typename object_t::edge_links;
+    using object_t = object_type;
+    using link_t = object
 
     /** Navigation status flag */
     enum navigation_status : int {
@@ -502,5 +511,21 @@ class single_type_navigator {
     const transform_container &_transforms;
     const mask_container &_masks;
 };
+
+/** A static inplementation of single type navigator for device
+ * 
+ **/
+/*
+template < typename single_type_navigator_t >
+struct single_type_navigator_data {
+
+    single_type_navigator_data(single_type_navigator_t& navigator){}
+
+    vecmem::data::vector_view<volume_type> _volumes_data;
+    vecmem::data::vector_view<object_type> _objects_data;
+    vecmem::data::vector_view<transform_type> _transforms_data;
+    mask_container_data _masks_data;
+};
+*/
 
 }  // namespace detray
