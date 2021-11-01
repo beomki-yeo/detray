@@ -179,11 +179,12 @@ struct toy_object_registry {
  * - a second layer (r_min = 64mm, r_max = 80mm, half_z = 500mm) with 448
  *   rectangular (half_x = 8.4mm, half_y = 36mm) modules at r = 72mm.
  *
+ * @param resource is the vecmem memory resource
  * @returns a tuple containing the geometry objects collections: [volumes,
  *          surfaces, transforms, disc masks (neg/pos portals), cylinder masks
  *          (inner/outer portals), rectangle masks (modules)]
  */
-auto toy_geometry() {
+auto toy_geometry(vecmem::memory_resource& resource) {
 
     // Volume type
     using volume_type =
@@ -223,17 +224,17 @@ auto toy_geometry() {
     using rectangle_container = detray::dvector<rectangle>;
 
     /** Volumes */
-    volume_container volumes = {};
+    volume_container volumes(&resource);
     /** Surfaces, including portals */
-    surface_container surfaces = {};
+    surface_container surfaces(&resource);
     /** Surface transforms */
-    transf_container transforms = {};
+    transf_container transforms(&resource);
     /** Disc masks for neg/pos volume boundaries (portals) */
-    disc_container discs = {};
+    disc_container discs(&resource);
     /** Cylinder masks for inner/outer volume boundaries (portals) */
-    cylinder_container cylinders = {};
+    cylinder_container cylinders(&resource);
     /** Rectangle masks for detector surfaces */
-    rectangle_container rectangles = {};
+    rectangle_container rectangles(&resource);
     // mask index for surfaces
     mask_index m_id = {};
     /** source link */

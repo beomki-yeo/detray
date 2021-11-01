@@ -42,29 +42,21 @@ struct void_inspector {
  *
  * The heartbeat indicates, that the navigation is still in a valid state.
  *
- * @tparam volume_container provides the volumes
- * @tparam object_container provides portals and module surfaces (objects)
- * @tparam transform_container provides the object transforms
- * @tparam mask_container provides the object masks
- * @tparam inspector_type is a validation inspector
+ * @tparam volume_type provides the type of volumes
+ * @tparam object_type provides the type of objects
+ * @tparam transform_type provides the type of transform3
+ * @tparam vector_type provides the type of vector
+ * @tparam mask_types provides the types of masks
  */
-
-template < template < typename ... > class vector_type = dvector,
-           typename volume_type, typename object_type, typename transform_type,
-           typename... mask_types,
-           typename inspector_type = void_inspector >
-/*           
-template <typename volume_container, typename object_container,
-          typename transform_container, typename mask_container,
-          typename inspector_type = void_inspector>
-          */
+template <typename volume_type, typename object_type, typename transform_type,
+          typename inspector_type = void_inspector,
+          template <typename...> class vector_type = dvector,
+          typename... mask_types>
 class single_type_navigator {
 
     public:
-    //using object_t = typename object_container::value_type;
-    //using link_t = typename object_t::edge_links;
     using object_t = object_type;
-    using link_t = object
+    using link_t = typename object_t::edge_links;
 
     /** Navigation status flag */
     enum navigation_status : int {
@@ -86,7 +78,6 @@ class single_type_navigator {
 
     /** A nested navigation kernel struct that holds the current candiates.
      **/
-    template <template <typename> class vector_type = dvector>
     struct navigation_kernel {
 
         // Our list of candidates (intersections with object)
@@ -214,7 +205,7 @@ class single_type_navigator {
         scalar _distance_to_next = std::numeric_limits<scalar>::infinity();
 
         /** Kernel for the objects */
-        navigation_kernel<> _kernel;
+        navigation_kernel _kernel;
 
         /** The inspector type of this navigation engine */
         inspector_type _inspector = {};
@@ -241,15 +232,17 @@ class single_type_navigator {
 
     /** Constructor from collection of data containers
      *
-     * @param volumes the container for naviagtion volumes
-     * @param objects the container for surfaces/portals
-     * @param transforms the container for surface/portal transforms
-     * @param masks the container for urface/portal masks ("unrollable")
+     * @param vector_type<volume_type> the container for naviagtion volumes
+     * @param vector_type<object_type> the container for surfaces/portals
+     * @param vector_type<transform_type> the container for surface/portal
+     * transforms
+     * @param mask_store<vector_type, mask_types...> the container for
+     * urface/portal masks ("unrollable")
      */
-    single_type_navigator(const volume_container &volumes,
-                          const object_container &objects,
-                          const transform_container &transforms,
-                          const mask_container &masks)
+    single_type_navigator(const dvector<volume_type> &volumes,
+                          const dvector<object_type> &objects,
+                          const dvector<transform_type> &transforms,
+                          const mask_store<dvector, mask_types...> &masks)
         : _volumes(volumes),
           _objects(objects),
           _transforms(transforms),
@@ -325,9 +318,8 @@ class single_type_navigator {
      *
      */
     template <typename track_t>
-    inline void initialize_kernel(
-        state &navigation, const track_t &track,
-        const typename volume_container::value_type &volume) const {
+    inline void initialize_kernel(state &navigation, const track_t &track,
+                                  const volume_type &volume) const {
 
         // Get the max number of candidates & run them through the kernel
         navigation.candidates().reserve(volume.n_objects());
@@ -371,9 +363,8 @@ class single_type_navigator {
      * @return A boolean condition if kernel is exhausted or not
      */
     template <typename track_t>
-    inline void update_kernel(
-        state &navigation, const track_t &track,
-        const typename volume_container::value_type &volume) const {
+    inline void update_kernel(state &navigation, const track_t &track,
+                              const volume_type &volume) const {
 
         if (navigation.trust_level() == e_no_trust) {
             initialize_kernel(navigation, track, volume);
@@ -500,20 +491,20 @@ class single_type_navigator {
      *
      * @return true if the kernel is exhaused
      */
-    bool is_exhausted(const navigation_kernel<> &kernel) const {
+    bool is_exhausted(const navigation_kernel &kernel) const {
         return (kernel.next == kernel.candidates.end());
     }
 
     private:
     /** the containers for all data */
-    const volume_container &_volumes;
-    const object_container &_objects;
-    const transform_container &_transforms;
-    const mask_container &_masks;
+    const vector_type<volume_type> &_volumes;
+    const vector_type<object_type> &_objects;
+    const vector_type<transform_type> &_transforms;
+    const mask_store<vector_type, mask_types...> &_masks;
 };
 
 /** A static inplementation of single type navigator for device
- * 
+ *
  **/
 /*
 template < typename single_type_navigator_t >

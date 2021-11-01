@@ -7,6 +7,8 @@
 
 #include <gtest/gtest.h>
 
+#include <vecmem/memory/host_memory_resource.hpp>
+
 #include "core/mask_store.hpp"
 #include "core/track.hpp"
 #include "tests/common/read_geometry.hpp"
@@ -14,8 +16,10 @@
 
 /// @note __plugin has to be defined with a preprocessor command
 
+vecmem::host_memory_resource resource;
+
 auto [volumes, surfaces, transforms, discs, cylinders, rectangles] =
-    toy_geometry();
+    toy_geometry(resource);
 
 // This tests the construction and general methods of the navigator
 TEST(ALGEBRA_PLUGIN, single_type_navigator) {

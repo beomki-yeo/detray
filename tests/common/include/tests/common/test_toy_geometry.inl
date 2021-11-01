@@ -7,12 +7,16 @@
 
 #include <gtest/gtest.h>
 
+#include <vecmem/memory/host_memory_resource.hpp>
+
 #include "tests/common/read_geometry.hpp"
 
 using namespace detray;
 
+vecmem::host_memory_resource resource;
+
 auto [volumes, surfaces, transforms, discs, cylinders, rectangles] =
-    toy_geometry();
+    toy_geometry(resource);
 
 // This test check the building of the tml based toy geometry
 TEST(ALGEBRA_PLUGIN, toy_geometry) {
