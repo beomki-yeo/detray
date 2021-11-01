@@ -50,7 +50,9 @@ struct void_inspector {
  */
 template <typename volume_type, typename object_type, typename transform_type,
           typename inspector_type = void_inspector,
-          template <typename...> class vector_type = dvector,
+          template <typename> class vector_type = dvector,
+          // template <typename, template <typename> class alloc>
+          // class vector_type = dvector,
           typename... mask_types>
 class single_type_navigator {
 
@@ -242,7 +244,14 @@ class single_type_navigator {
     single_type_navigator(const dvector<volume_type> &volumes,
                           const dvector<object_type> &objects,
                           const dvector<transform_type> &transforms,
-                          const mask_store<dvector, mask_types...> &masks)
+                          const mask_store<vector_type, mask_types...> &masks)
+        /*
+        template < class A, class B, class C >
+        single_type_navigator(const vector_type<volume_type, A> &volumes,
+                              const vector_type<object_type, B> &objects,
+                              const vector_type<transform_type, C>
+        &transforms, const mask_store<vector_type, mask_types...> &masks)
+                              */
         : _volumes(volumes),
           _objects(objects),
           _transforms(transforms),
