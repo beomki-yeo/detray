@@ -47,6 +47,14 @@ foreach(algebra ${algebras})
     vecmem::cuda detray::${algebra})
   target_compile_definitions(detray_test_${algebra}_unified_index_geometry_cuda PRIVATE ${algebra}=${algebra})
 
+  # single type navigator test
+  add_detray_test(${algebra}_single_type_navigator_cuda
+    "single_type_navigator_cuda.cpp"
+    "single_type_navigator_cuda_kernel.hpp"
+    "single_type_navigator_cuda_kernel.cu"
+    LINK_LIBRARIES
+    vecmem::cuda detray::${algebra})
+  target_compile_definitions(detray_test_${algebra}_single_type_navigator_cuda PRIVATE ${algebra}=${algebra})
 
 endforeach()
 

@@ -264,7 +264,11 @@ class single_type_navigator {
 #if defined(__CUDACC__)
     template <tpyename single_type_navigator_data_t>
     DETRAY_DEVICE single_type_navigator(
-        single_type_navigator_data_t &navigator_data) {}
+        single_type_navigator_data_t &navigator_data)
+        : _volumes(navigator_data._volumes_data),
+          _objects(navigator_data._objects_data),
+          _transforms_data(navigator_data._transforms_data),
+          _masks_data(navigator_data._masks_data) {}
 #endif
     /** Navigation status() call which established the current navigation
      *  information.
@@ -513,6 +517,22 @@ class single_type_navigator {
         return (kernel.next == kernel.candidates.end());
     }
 
+    /** Get _volumes
+     */
+    auto volumes() { return _volumes; }
+
+    /** Get _objects
+     */
+    auto objects() { return _objects; }
+
+    /** Get _transforms
+     */
+    auto transforms() { return _transforms; }
+
+    /** Get _masks
+     */
+    auto masks() { return _masks; }
+
     private:
     /** the containers for all data */
     const vector_type<volume_type> &_volumes;
@@ -527,7 +547,11 @@ class single_type_navigator {
 template <typename navigator_type>
 struct single_type_navigator_data {
 
-    single_type_navigator_data(navigator_type &navigator) {}
+    single_type_navigator_data(navigator_type &navigator)
+        : _volumes_data(navigator.volumes()),
+          _objects_data(navigator.objects()),
+          _transforms_data(navigator.transforms()),
+          _masks_data(navigator.masks()) {}
 
     vecmem::data::vector_view<typename navigator_type::volume_t> _volumes_data;
     vecmem::data::vector_view<typename navigator_type::object_t> _objects_data;
@@ -535,5 +559,19 @@ struct single_type_navigator_data {
         _transforms_data;
     mask_store_data<typename navigator_type::mask_store_t> _masks_data;
 };
+
+/** Get single_type_navigator_data
+ **/
+template <template <typename, class...> class vector_type,
+          typename inspector_type, typename volume_type, typename object_type,
+          typename transform_type, typename... mask_types>
+inline single_type_navigator_data<
+    single_type_navigator<vector_type, inspector_type, volume_type, object_type,
+                          transform_type, mask_types...>>
+get_data(
+    single_type_navigator<vector_type, inspector_type, volume_type, object_type,
+                          transform_type, mask_types...> &navigator) {
+    return single_type_navigator_data<mask_types...>(navigator);
+}
 
 }  // namespace detray
