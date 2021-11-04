@@ -7,13 +7,13 @@
 #pragma once
 
 #include <type_traits>
+#include <utility>
 #include <vecmem/containers/device_vector.hpp>
 #include <vecmem/memory/memory_resource.hpp>
 
 #include "definitions/basic_types.hpp"
 #include "definitions/detray_qualifiers.hpp"
 #include "utils/enumerate.hpp"
-#include "utils/expand.hpp"
 #include "utils/indexing.hpp"
 
 namespace detray {
@@ -38,9 +38,8 @@ class mask_store {
 #if defined(__CUDACC__)
     template <template <typename...> class mask_store_data_t>
     DETRAY_DEVICE mask_store(mask_store_data_t<mask_types...> &store_data)
-        : _mask_tuple(
-              store_data.device(typename gens<sizeof...(mask_types)>::type())) {
-    }
+        : _mask_tuple(store_data.device(
+              std::make_index_sequence<sizeof...(mask_types)>{})) {}
 #endif
 
     /** Size : Contextual STL like API
@@ -74,7 +73,7 @@ class mask_store {
      * @return the required mask
      */
     template <unsigned int current_id = 0>
-    DETRAY_HOST_DEVICE const auto &mask(const dindex mask_id,
+    DETRAY_HOST_DEVICE const auto &mask(const unsigned int mask_id,
                                         const dindex mask_index) const {
         if (current_id == mask_id) {
             return group<current_id>()[mask_index];
@@ -91,7 +90,7 @@ class mask_store {
      * @return vector of masks of a given type.
      */
     template <unsigned int mask_id>
-    DETRAY_HOST_DEVICE auto &group() {
+    DETRAY_HOST_DEVICE constexpr auto &group() {
         return __tuple::get<mask_id>(_mask_tuple);
     }
 
@@ -123,11 +122,11 @@ class mask_store {
      *
      * @return tuple type of vecmem::data::vector_view objects
      */
-    template <unsigned int... S>
+    template <std::size_t... ints>
     DETRAY_HOST __tuple::tuple<vecmem::data::vector_view<mask_types>...> data(
-        seq<S...>) {
+        std::index_sequence<ints...> /*seq*/) {
         return std::make_tuple(vecmem::data::vector_view<mask_types>(
-            vecmem::get_data(__tuple::get<S>(_mask_tuple)))...);
+            vecmem::get_data(__tuple::get<ints>(_mask_tuple)))...);
     }
 
     /** Add a new mask in place
@@ -244,7 +243,8 @@ struct mask_store_data {
      **/
     template <template <typename...> class vector_type>
     mask_store_data(mask_store<vector_type, mask_types...> &store)
-        : _data(store.data(typename gens<sizeof...(mask_types)>::type())) {}
+        : _data(store.data(std::make_index_sequence<sizeof...(mask_types)>{})) {
+    }
 
     /** Size : Contextual STL like API
      *
@@ -262,7 +262,7 @@ struct mask_store_data {
      * @return vector of masks of a given type.
      */
     template <unsigned int mask_id>
-    const auto &group() const {
+    constexpr const auto &group() const {
         return std::get<mask_id>(_data);
     }
 
@@ -270,18 +270,18 @@ struct mask_store_data {
      *
      * @return tuple type of vecmem::data::vector_view objects
      */
-    template <unsigned int... S>
+    template <std::size_t... ints>
     DETRAY_DEVICE __tuple::tuple<vecmem::device_vector<mask_types>...> device(
-        seq<S...>) {
+        std::index_sequence<ints...> /*seq*/) {
         return __tuple::make_tuple(
-            vecmem::device_vector<mask_types>(std::get<S>(_data))...);
+            vecmem::device_vector<mask_types>(std::get<ints>(_data))...);
     }
 
     /** tuple of vecmem data **/
     std::tuple<vecmem::data::vector_view<mask_types>...> _data;
 };
 
-/** Get transform_store_data
+/** Get mask_store_data
  **/
 template <template <typename...> class vector_type, typename... mask_types>
 inline mask_store_data<mask_types...> get_data(
