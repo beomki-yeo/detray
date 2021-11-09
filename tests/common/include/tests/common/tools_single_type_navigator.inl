@@ -43,7 +43,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     masks.add_masks(cylinders);
     masks.add_masks(rectangles);
 
-    single_type_navigator n(volumes, surfaces, transforms, masks);
+    single_type_navigator n(volumes, surfaces, transforms, masks, resource);
     using toy_navigator = decltype(n);
 
     // test track

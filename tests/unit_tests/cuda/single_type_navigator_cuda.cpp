@@ -28,7 +28,7 @@ TEST(single_type_navigator_cuda, single_type_navigator) {
     auto [volumes, surfaces, transforms, discs, cylinders, rectangles] =
         toy_geometry(mng_mr);
 
-    mask_store<dvector, decltype(discs)::value_type,
+    mask_store<dtuple, dvector, decltype(discs)::value_type,
                decltype(cylinders)::value_type,
                decltype(rectangles)::value_type>
         masks(mng_mr);
@@ -37,7 +37,7 @@ TEST(single_type_navigator_cuda, single_type_navigator) {
     masks.add_masks(cylinders);
     masks.add_masks(rectangles);
 
-    single_type_navigator n(volumes, surfaces, transforms, masks);
+    single_type_navigator n(volumes, surfaces, transforms, masks, mng_mr);
     using toy_navigator = decltype(n);
 
     // test track
@@ -464,4 +464,6 @@ TEST(single_type_navigator_cuda, single_type_navigator) {
     // We know we went out of the detector
     ASSERT_EQ(state.trust_level(),
               toy_navigator::navigation_trust_level::e_full_trust);
+
+    auto navigator_data = get_data(n);
 }

@@ -6,17 +6,17 @@
  */
 
 #if defined(array)
-#include "plugins/algebra/array_definitions.hpp"
+#include "detray/plugins/algebra/array_definitions.hpp"
 #elif defined(eigen)
-#include "plugins/algebra/eigen_definitions.hpp"
+#include "detray/plugins/algebra/eigen_definitions.hpp"
 #elif defined(smatrix)
-#include "plugins/algebra/smatrix_definitions.hpp"
+#include "detray/plugins/algebra/smatrix_definitions.hpp"
 #elif defined(vc_array)
-#include "plugins/algebra/vc_array_definitions.hpp"
+#include "detray/plugins/algebra/vc_array_definitions.hpp"
 #endif
 
+#include "detray/tools/single_type_navigator.hpp"
 #include "tests/common/read_geometry.hpp"
-#include "tools/single_type_navigator.hpp"
 
 #pragma once
 
