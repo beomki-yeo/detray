@@ -8,6 +8,7 @@
 #pragma once
 
 #include "detray/definitions/detail/accessor.hpp"
+#include "detray/definitions/qualifiers.hpp"
 
 namespace detray {
 
@@ -20,9 +21,13 @@ struct base_container {
 
     using container_type = vtuple::tuple<Ts...>;
 
+    DETRAY_HOST_DEVICE
+    base_container(container_type &&container)
+        : m_container(std::move(container)) {}
+
     template <id_type ID>
     DETRAY_HOST_DEVICE size_t size() const {
-        return detail::get<ID>(_container).size();
+        return detail::get<ID>(m_container).size();
     }
 
     DETRAY_HOST_DEVICE constexpr std::size_t size() const {
@@ -31,24 +36,18 @@ struct base_container {
 
     template <id_type ID>
     DETRAY_HOST_DEVICE bool empty() const {
-        return detail::get<ID>(_container).empty();
+        return detail::get<ID>(m_container).empty();
     }
 
     template <id_type ID>
     DETRAY_HOST_DEVICE constexpr auto &group() {
-        return detail::get<ID>(_container);
+        return detail::get<ID>(m_container);
     }
 
     template <id_type ID>
     DETRAY_HOST_DEVICE constexpr const auto &group() const {
-        return detail::get<ID>(_container);
+        return detail::get<ID>(m_container);
     }
-
-    DETRAY_HOST_DEVICE
-    const auto &get() const { return _container; }
-
-    DETRAY_HOST_DEVICE
-    auto &get() { return _container; }
 
     template <std::size_t ref_idx = 0>
     DETRAY_HOST_DEVICE static constexpr id_type to_id(const std::size_t index) {
@@ -67,8 +66,8 @@ struct base_container {
         return static_cast<id_type>(sizeof...(Ts));
     }
 
-    private:
-    container_type _container;
+    protected:
+    container_type m_container;
 };
 
 }  // namespace detray

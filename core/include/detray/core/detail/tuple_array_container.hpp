@@ -38,16 +38,16 @@ struct tuple_array_container
     using base_type =
         base_container<tuple_type, ID,
                        array_type<typename Ts::object_type, Ts::N>...>;
+    using base_type::base_type;
 
     using container_type = typename base_type::container_type;
-
-    tuple_array_container() = delete;
 
     /// Host container constructor
     DETRAY_HOST
     tuple_array_container(vecmem::memory_resource& resource)
-        : _container(initialize_host_arrays<Ts::object_type>(
-              resource, std::make_index_sequence<Ts::N>{})...) {}
+        : base_type(
+              container_type(initialize_host_arrays<typename Ts::object_type>(
+                  resource, std::make_index_sequence<Ts::N>{})...)) {}
 
     template <typename T, std::size_t... ints>
     DETRAY_HOST array_type<T, sizeof...(ints)> initialize_host_arrays(
@@ -58,7 +58,7 @@ struct tuple_array_container
 
         std::fill(resources.begin(), resources.end(), &resource);
 
-        return array_type<T, sizeof...(ints)>({{*resources[ints]...}});
+        return array_type<T, sizeof...(ints)>{T(resources[ints])...};
     }
 
     /// Device container constructor
@@ -68,7 +68,7 @@ struct tuple_array_container
                   bool> = true>
     DETRAY_HOST_DEVICE tuple_array_container(
         const container_data_t& container_data)
-        : _container(initialize_device_arrays<Ts::object_type>(
+        : base_type(initialize_device_arrays<Ts::object_type>(
               container_data, std::make_index_sequence<Ts::N>{})...) {}
 
     template <typename T, std::size_t... ints, typename container_data_t>
@@ -77,9 +77,6 @@ struct tuple_array_container
         std::index_sequence<ints...> /*seq*/) {
         return array_type<T, sizeof...(ints)>{container_data.data[ints]...};
     }
-
-    private:
-    container_type _container;
 };
 
 }  // namespace detray
