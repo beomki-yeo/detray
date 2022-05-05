@@ -14,8 +14,9 @@ namespace detray {
 
 template <template <typename...> class tuple_t, typename id_type,
           typename... Ts>
-struct base_container {
+class base_container {
 
+    public:
     template <typename... Args>
     using tuple_type = tuple_t<Args...>;
 

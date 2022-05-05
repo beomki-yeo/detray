@@ -24,7 +24,7 @@ namespace detray {
 template <template <typename...> class tuple_t,
           template <typename, std::size_t> class array_t, typename ID,
           typename... Ts>
-struct tuple_array_container
+class tuple_array_container
     : public base_container<tuple_t, ID,
                             array_t<typename Ts::object_type, Ts::N>...> {
 

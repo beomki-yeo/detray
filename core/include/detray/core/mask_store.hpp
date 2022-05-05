@@ -16,6 +16,9 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/utils/enumerate.hpp"
 
+// Detray include(s)
+#include "detray/core/detail/tuple_vector_container.hpp"
+
 namespace detray {
 
 /** A mask store that provides the correct mask containers to client classes. */

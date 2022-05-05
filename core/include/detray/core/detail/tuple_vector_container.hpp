@@ -17,6 +17,7 @@
 #include <vecmem/memory/memory_resource.hpp>
 
 // System include(s)
+#include <type_traits>
 #include <utility>
 
 namespace detray {
@@ -24,7 +25,7 @@ namespace detray {
 template <template <typename...> class tuple_t,
           template <typename...> class vector_t, typename id_type,
           typename... Ts>
-struct tuple_vector_container
+class tuple_vector_container
     : public base_container<tuple_t, id_type, vector_t<Ts>...> {
 
     public:
@@ -60,7 +61,7 @@ struct tuple_vector_container
     initialize_device_vectors(container_data_t &container_data,
                               std::index_sequence<ints...> /*seq*/) {
         return vtuple::make_tuple(
-            vector_type<Ts>(detail::get<ints>(container_data._data))...);
+            vector_type<Ts>(detail::get<ints>(container_data.m_data))...);
     }
 
     template <std::size_t... ints>
@@ -120,5 +121,30 @@ struct tuple_vector_container
         }
     }
 };
+
+template <typename tuple_vector_container_t>
+struct tuple_vector_container_data {
+
+    using container_data_type =
+        typename tuple_vector_container_t::container_data_type;
+
+    template <std::size_t... ints>
+    DETRAY_HOST tuple_vector_container_data(tuple_vector_container_t &container,
+                                            std::index_sequence<ints...> seq)
+        : m_data(container.initialize_data_vectors(seq)) {}
+
+    container_data_type m_data;
+};
+
+template <template <typename...> class tuple_t,
+          template <typename...> class vector_t, typename id_type,
+          typename... Ts>
+inline tuple_vector_container_data<
+    tuple_vector_container<tuple_t, vector_t, id_type, Ts...>>
+get_data(tuple_vector_container<tuple_t, vector_t, id_type, Ts...> &container) {
+    return tuple_vector_container_data<
+        tuple_vector_container<tuple_t, vector_t, id_type, Ts...>>(
+        container, std::make_index_sequence<sizeof...(Ts)>{});
+}
 
 }  // namespace detray
