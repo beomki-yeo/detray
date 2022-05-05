@@ -19,7 +19,6 @@ class base_container {
     public:
     template <typename... Args>
     using tuple_type = tuple_t<Args...>;
-
     using container_type = vtuple::tuple<Ts...>;
 
     DETRAY_HOST_DEVICE

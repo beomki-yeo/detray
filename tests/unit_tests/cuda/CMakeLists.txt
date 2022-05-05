@@ -12,6 +12,7 @@ include( detray-compiler-options-cuda )
 
 # "Core" tests.
 detray_add_test( core_cuda
+   "container_cuda.cpp" "container_cuda_kernel.hpp" "container_cuda_kernel.cu"
    "grids_grid2_cuda.cpp" "grids_grid2_cuda_kernel.hpp"
    "grids_grid2_cuda_kernel.cu" "utils_enumerate_cuda.cpp"
    "utils_enumerate_cuda_kernel.hpp" "utils_enumerate_cuda_kernel.cu"
