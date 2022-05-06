@@ -28,14 +28,14 @@ class tuple_vector_container
     : public base_container<tuple_t, id_type, vector_t<Ts>...> {
 
     public:
-    template <typename T>
-    using vector_type = vector_t<T>;
-
-    using base_type = base_container<tuple_t, id_type, vector_type<Ts>...>;
+    using base_type = base_container<tuple_t, id_type, vector_t<Ts>...>;
     using base_type::base_type;
 
     template <typename... Args>
     using tuple_type = typename base_type::template tuple_type<Args...>;
+
+    template <typename T>
+    using vector_type = vector_t<T>;
 
     using container_type = typename base_type::container_type;
     using container_data_type = tuple_type<vecmem::data::vector_view<Ts>...>;

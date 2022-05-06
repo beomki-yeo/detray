@@ -29,16 +29,16 @@ class tuple_array_container
                             array_t<typename Ts::object_type, Ts::N>...> {
 
     public:
-    template <typename T, std::size_t I>
-    using array_type = array_t<T, I>;
+    using base_type =
+        base_container<tuple_t, ID,
+                       array_t<typename Ts::object_type, Ts::N>...>;
+    using base_type::base_type;
 
     template <typename... Args>
-    using tuple_type = tuple_t<Args...>;
+    using tuple_type = typename base_type::template tuple_type<Args...>;
 
-    using base_type =
-        base_container<tuple_type, ID,
-                       array_type<typename Ts::object_type, Ts::N>...>;
-    using base_type::base_type;
+    template <typename T, std::size_t I>
+    using array_type = array_t<T, I>;
 
     using container_type = typename base_type::container_type;
 

@@ -26,6 +26,20 @@ using tuple_vector_container_type =
 using tuple_vector_container_data_type =
     tuple_vector_container_data<tuple_vector_container_type>;
 
+struct int_type {
+    using object_type = vecmem::vector<int>;
+    static constexpr std::size_t N = 1;
+};
+
+struct float_type {
+    using object_type = vecmem::vector<float>;
+    static constexpr std::size_t N = 2;
+};
+
+using tuple_array_container_type =
+    tuple_array_container<thrust::tuple, std::array, std::size_t, int_type,
+                          float_type>;
+
 void get_sum(tuple_vector_container_data_type& container_data,
              vecmem::data::vector_view<double>& sum_data);
 
