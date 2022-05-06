@@ -17,4 +17,16 @@
 // Vecmem include(s)
 #include "vecmem/containers/device_vector.hpp"
 
-namespace detray {}  // namespace detray
+namespace detray {
+
+using tuple_vector_container_type =
+    tuple_vector_container<thrust::tuple, vecmem::vector, std::size_t, int,
+                           float, double>;
+
+using tuple_vector_container_data_type =
+    tuple_vector_container_data<tuple_vector_container_type>;
+
+void get_sum(tuple_vector_container_data_type& container_data,
+             vecmem::data::vector_view<double>& sum_data);
+
+}  // namespace detray
