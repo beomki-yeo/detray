@@ -68,9 +68,9 @@ TEST(container_cuda, tuple_vector_container) {
 
     // CUDA sum check
     auto container_data = get_data(container);
+
     vecmem::vector<double> cuda_sum(&resource);
     cuda_sum.push_back(0);
-
     auto sum_data = vecmem::get_data(cuda_sum);
 
     get_sum(container_data, sum_data);
@@ -105,7 +105,13 @@ TEST(container_cuda, tuple_array_container) {
     EXPECT_FLOAT_EQ(cpu_sum, 26.4);
 
     // CUDA sum check
-    // auto container_data = get_data(container);
-    // vecmem::vector<double> cuda_sum(&resource);
-    // cuda_sum.push_back(0);
+    auto container_data = get_data(container, resource);
+
+    vecmem::vector<double> cuda_sum(&resource);
+    cuda_sum.push_back(0);
+    auto sum_data = vecmem::get_data(cuda_sum);
+
+    get_sum(container_data, sum_data);
+
+    EXPECT_FLOAT_EQ(cpu_sum, cuda_sum[0]);
 }

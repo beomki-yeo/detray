@@ -88,11 +88,15 @@ TEST(container, tuple_vector_container) {
 
 struct int_type {
     using object_type = vecmem::vector<int>;
+    using data_type = vecmem::data::vector_view<int>;
+    using view_type = vecmem::data::vector_view<int>;
     static constexpr std::size_t N = 1;
 };
 
 struct float_type {
     using object_type = vecmem::vector<float>;
+    using data_type = vecmem::data::vector_view<float>;
+    using view_type = vecmem::data::vector_view<float>;
     static constexpr std::size_t N = 2;
 };
 
