@@ -7,12 +7,14 @@
 
 #pragma once
 
-#include <type_traits>
-#include <utility>
-
+// Detray include(s)
 #include "detray/core/mask_store.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
+
+// System include(s)
+#include <type_traits>
+#include <utility>
 
 namespace detray {
 
@@ -22,11 +24,11 @@ namespace detray {
  * @tparam IDs enum that references the types (not used in base class)
  * @tparam registered_types the types that can be mapped to indices
  */
-template <class ID, bool /*put checks on IDs type*/,
+template <typename ID, bool /*put checks on IDs type*/,
           typename... registered_types>
 class registry_base;
 
-template <class ID, typename... registered_types>
+template <typename ID, typename... registered_types>
 class registry_base<ID, false, registered_types...> {
     // Produce meaningful errors
     static_assert(
@@ -36,7 +38,7 @@ class registry_base<ID, false, registered_types...> {
                   "Type enum must be convertible to std::size_t!");
 };
 
-template <class ID, typename... registered_types>
+template <typename ID, typename... registered_types>
 class registry_base<ID, true, registered_types...> {
     public:
     /** Conventions for some basic info */
@@ -49,7 +51,7 @@ class registry_base<ID, true, registered_types...> {
     /** Get the index for a type. Needs to be unrolled in case of thrust tuple.
      */
     template <typename object_t>
-    DETRAY_HOST_DEVICE static constexpr unsigned int get_id() {
+    DETRAY_HOST_DEVICE static constexpr std::size_t get_id() {
         return unroll_ids<std::remove_reference_t<object_t>,
                           registered_types...>();
     }
@@ -128,10 +130,9 @@ class registry_base<ID, true, registered_types...> {
 /** Registry for geometric objects.*/
 template <typename... registered_types>
 class object_registry
-    : public registry_base<unsigned int, true, registered_types...> {
+    : public registry_base<std::size_t, true, registered_types...> {
     public:
-    using type_registry =
-        registry_base<unsigned int, true, registered_types...>;
+    using type_registry = registry_base<std::size_t, true, registered_types...>;
 
     enum : std::size_t {
         n_types = type_registry::n_types,
@@ -140,7 +141,7 @@ class object_registry
     };
 
     /// Known primitives
-    enum id : unsigned int {
+    enum id : std::size_t {
         e_surface = 0,
         e_portal = 0,  // not used (same as surface)
     };
@@ -151,21 +152,21 @@ class object_registry
     template <typename T>
     using get_index = typename type_registry::template get_index<T>;
 
-    template <unsigned int type_id,
+    template <std::size_t type_id,
               template <typename...> class tuple_t = dtuple>
     using get_type =
         typename type_registry::template get_type<type_id, tuple_t>;
 };
 
 /** Registry object for masks */
-template <class ID, typename... registered_types>
+template <typename ID, typename... registered_types>
 class mask_registry
     : public registry_base<
-          ID, std::is_enum_v<ID> and std::is_convertible_v<ID, unsigned int>,
+          ID, std::is_enum_v<ID> and std::is_convertible_v<ID, std::size_t>,
           registered_types...> {
     public:
     using type_registry = registry_base<
-        ID, std::is_enum_v<ID> and std::is_convertible_v<ID, unsigned int>,
+        ID, std::is_enum_v<ID> and std::is_convertible_v<ID, std::size_t>,
         registered_types...>;
 
     enum : std::size_t {
@@ -197,10 +198,9 @@ class mask_registry
 // TODO: Merge with mask registry
 template <typename... registered_types>
 class sf_finder_registry
-    : public registry_base<unsigned int, true, registered_types...> {
+    : public registry_base<std::size_t, true, registered_types...> {
     public:
-    using type_registry =
-        registry_base<unsigned int, true, registered_types...>;
+    using type_registry = registry_base<std::size_t, true, registered_types...>;
 
     enum : std::size_t {
         n_types = type_registry::n_types,
@@ -221,7 +221,7 @@ class sf_finder_registry
     template <typename T>
     using get_index = typename type_registry::template get_index<T>;
 
-    template <unsigned int type_id,
+    template <std::size_t type_id,
               template <typename...> class tuple_t = dtuple>
     using get_type =
         typename type_registry::template get_type<type_id, tuple_t>;

@@ -59,7 +59,7 @@ struct full_metadata {
 
     /// Give your mask types a name (needs to be consecutive to be matched
     /// to a type!)
-    enum mask_ids : unsigned int {
+    enum mask_ids : std::size_t {
         e_rectangle2 = 0,
         e_trapezoid2 = 1,
         e_annulus2 = 2,
@@ -110,7 +110,7 @@ struct toy_metadata {
 
     /// Give your mask types a name (needs to be consecutive to be matched
     /// to a type!)
-    enum mask_ids : unsigned int {
+    enum mask_ids : std::size_t {
         e_rectangle2 = 0,
         e_trapezoid2 = 1,
         e_cylinder3 = 2,         // Put the beampipe into the same container as
@@ -158,7 +158,7 @@ struct telescope_metadata {
 
     /// Give your mask types a name (needs to be consecutive to be matched
     /// to a type!)
-    enum mask_ids : unsigned int {
+    enum mask_ids : std::size_t {
         e_rectangle2 = 0,
         e_unbounded_plane2 = 1,
     };
