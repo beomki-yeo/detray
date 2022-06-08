@@ -5,10 +5,13 @@
  * Mozilla Public License Version 2.0
  */
 
+// Project include(s)
+#include "detray/geometry/pixel.hpp"
+
 // GTest include(s)
 #include <gtest/gtest.h>
 
 using namespace detray;
 
 // This tests the pixel measurement
-TEST(measurement_unit, pixel) {}
+TEST(geometry_unit, pixel) {}

@@ -29,6 +29,8 @@ detray_add_library( detray_core core
    # field include(s)
    "include/detray/field/constant_magnetic_field.hpp"
    # geometry include(s)
+   "include/detray/geometry/geometry_unit.hpp"   
+   "include/detray/geometry/pixel.hpp"      
    "include/detray/geometry/surface.hpp"
    "include/detray/geometry/volume_connector.hpp"
    "include/detray/geometry/volume_graph.hpp"
@@ -62,9 +64,6 @@ detray_add_library( detray_core core
    "include/detray/materials/material_rod.hpp"   
    "include/detray/materials/material_slab.hpp"   
    "include/detray/materials/predefined_materials.hpp"
-   # measurements include(s)
-   "include/detray/measurements/measurement_unit.hpp"
-   "include/detray/measurements/pixel.hpp"
    # propagator include(s)
    "include/detray/propagator/aborters.hpp"
    "include/detray/propagator/actor_chain.hpp"

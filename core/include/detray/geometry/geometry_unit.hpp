@@ -9,7 +9,13 @@
 
 namespace detray {
 
-template <int DIM, typename mask_t, typename... material_t>
-class measurement_unit;
+template <int D, typename scalar_t, typename... material_t>
+class geometry_unit {
+
+    static constexpr int DIM = D;
+    using scalar_type = scalar_t;
+
+    public:
+};
 
 }  // namespace detray
