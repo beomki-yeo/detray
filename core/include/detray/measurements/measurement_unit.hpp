@@ -9,7 +9,7 @@
 
 namespace detray {
 
-template <int DIM, typename mask_t, typename material_t>
-class measurement_unit {};
+template <int DIM, typename mask_t, typename... material_t>
+class measurement_unit;
 
 }  // namespace detray
