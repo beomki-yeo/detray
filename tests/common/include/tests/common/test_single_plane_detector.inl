@@ -23,14 +23,29 @@ using vector3 = __plugin::point3<scalar>;
 using point3 = __plugin::point3<scalar>;
 using transform3 = __plugin::transform3<detray::scalar>;
 using registry_type = detector_registry::default_detector;
+using mask_id_type = registry_type::mask_ids;
+using material_id_type = registry_type::material_ids;
 
 TEST(single_plane_detector, rectangle) {
     vecmem::host_memory_resource host_resource;
 
-    constexpr registry_type::mask_ids mask_id =
-        registry_type::mask_ids::e_rectangle2;
-    constexpr registry_type::material_ids material_id =
-        registry_type::material_ids::e_slab;
+    constexpr mask_id_type mask_id = mask_id_type::e_rectangle2;
+    constexpr material_id_type material_id = material_id_type::e_slab;
+
+    single_plane_detector_creator<mask_id, material_id> det_creator(
+        host_resource);
+
+    // auto mask_gr = det_creator.m_masks.template group<mask_id>();
+    // using mask_type = decltype(mask_gr)::value_type;
+    /*
+    using mask_type =
+        typename decltype(det_creator.m_masks
+                              .template group<mask_id>())::value_type;
+    */
+    /*
+    using mask_type =
+        decltype(det_creator.m_masks.template group<mask_id>())::value;
+    */
 
     const vector3 x{1, 0, 0};
     const vector3 z{0, 0, 1};
@@ -41,9 +56,6 @@ TEST(single_plane_detector, rectangle) {
 
     const material<scalar> mat = silicon<scalar>();
     const scalar thickness = 2 * unit_constants::mm;
-
-    single_plane_detector_creator<mask_id, material_id> det_creator(
-        host_resource);
 
     det_creator.set_transform(t, z, x);
     det_creator.set_mask(hx, hy);

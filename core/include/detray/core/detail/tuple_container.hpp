@@ -114,7 +114,7 @@ class tuple_container {
      * @return vector of masks of a given type.
      */
     template <id_t ID>
-    DETRAY_HOST_DEVICE constexpr const auto &group() const {
+    DETRAY_HOST_DEVICE constexpr const auto group() const {
         return detail::get<ID>(m_container);
     }
 

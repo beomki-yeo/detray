@@ -9,6 +9,7 @@
 
 // Project include(s).
 #include "detray/core/detector.hpp"
+#include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "tests/common/tools/detector_metadata.hpp"
@@ -30,6 +31,16 @@ struct single_plane_detector_creator {
     using edge_type = typename surface_type::edge_type;
     using mask_link_type = typename surface_type::mask_link;
     using material_link_type = typename surface_type::material_link;
+
+    using mask_container = typename detector_type::mask_container;
+    using material_container = typename detector_type::material_container;
+
+    using transform_type = typename detector_type::transform3;
+    using mask_type = typename detail::tuple_element<
+        mask_id, typename mask_container::container_type>::type::value_type;
+    using material_type = typename detail::tuple_element<
+        material_id,
+        typename material_container::container_type>::type::value_type;
 
     single_plane_detector_creator(vecmem::memory_resource& resource)
         : m_detector(resource),
