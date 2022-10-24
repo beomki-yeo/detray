@@ -11,6 +11,19 @@
 #include "detray/masks/masks.hpp"
 
 using namespace detray;
+using namespace __plugin;
+
+struct test_param {
+    using point2 = __plugin::point2<scalar>;
+
+    test_param(scalar loc_0, scalar loc_1) {
+        loc[0] = loc_0;
+        loc[1] = loc_1;
+    }
+
+    point2 loc;
+    point2 local() const { return loc; }
+};
 
 namespace {
 
@@ -39,6 +52,29 @@ TEST(mask, line_radial_cross_sect) {
     ASSERT_TRUE(ln.is_inside(ln_edge) == intersection::status::e_inside);
     ASSERT_TRUE(ln.is_inside(ln_out1) == intersection::status::e_outside);
     ASSERT_TRUE(ln.is_inside(ln_out2) == intersection::status::e_outside);
+
+    // Check projection matrix
+    const auto proj = ln.projection_matrix<e_bound_size>();
+    for (std::size_t i = 0; i < e_bound_size; i++) {
+        for (std::size_t j = 0; j < decltype(ln)::shape::meas_dim; j++) {
+            if (i == j) {
+                ASSERT_EQ(getter::element(proj, i, j), 1);
+            } else {
+                ASSERT_EQ(getter::element(proj, i, j), 0);
+            }
+        }
+    }
+
+    // Test to_measurement function
+    test_param param_1(1, 2);
+    test_param param_2(2.5, 3);
+
+    const auto meas_1 = ln.get_shape().to_measurement(param_1, {-3, 2});
+    const auto meas_2 = ln.get_shape().to_measurement(param_2, {1, -4});
+    ASSERT_FLOAT_EQ(meas_1[0], 0.);
+    ASSERT_FLOAT_EQ(meas_1[1], 4.);
+    ASSERT_FLOAT_EQ(meas_2[0], 3.5);
+    ASSERT_FLOAT_EQ(meas_2[1], -1);
 }
 
 /// This tests the basic functionality of a line with a square cross section
@@ -61,4 +97,27 @@ TEST(mask, line_square_cross_sect) {
     ASSERT_TRUE(ln.is_inside(ln_edge, -1e-5) ==
                 intersection::status::e_outside);
     ASSERT_TRUE(ln.is_inside(ln_out) == intersection::status::e_outside);
+
+    // Check projection matrix
+    const auto proj = ln.projection_matrix<e_bound_size>();
+    for (std::size_t i = 0; i < e_bound_size; i++) {
+        for (std::size_t j = 0; j < decltype(ln)::shape::meas_dim; j++) {
+            if (i == j) {
+                ASSERT_EQ(getter::element(proj, i, j), 1);
+            } else {
+                ASSERT_EQ(getter::element(proj, i, j), 0);
+            }
+        }
+    }
+
+    // Test to_measurement function
+    test_param param_1(1, 2);
+    test_param param_2(2.5, 3);
+
+    const auto meas_1 = ln.get_shape().to_measurement(param_1, {-3, 2});
+    const auto meas_2 = ln.get_shape().to_measurement(param_2, {1, -4});
+    ASSERT_FLOAT_EQ(meas_1[0], 0.);
+    ASSERT_FLOAT_EQ(meas_1[1], 4.);
+    ASSERT_FLOAT_EQ(meas_2[0], 3.5);
+    ASSERT_FLOAT_EQ(meas_2[1], -1);
 }
