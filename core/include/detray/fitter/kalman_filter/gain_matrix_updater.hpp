@@ -36,17 +36,20 @@ struct gain_matrix_updater {
             const auto& predicted_cov = trk_state.predicted().covaraince();
 
             // Spatial resolution (Measurement error)
+            // Dimension: (Meas_Dim X Meas_Dim)
             const auto R = trk_state.measurement_error();
 
             // Mask for track state
             const auto& mask = mask_group[surface.mask().index()];
 
+            // Dimension: (Meas_Dim X 6) * (6 X 6) * (6 X Meas_Dim)
             const auto M =
                 H * predicted_cov * matrix_operator().transpose(H) + R;
 
             // Kalman gain matrix
+            // Dimension: (6 X 6) * (6 X Meas_Dim) * ()
             const auto K = predicted_cov * matrix_operator().transpose(H) *
-                             matrix_operator().inverse(M);
+                           matrix_operator().inverse(M);
 
             // Update filtered track parameters with Kalman gain
             auto& filtered_vec = trk_state.filtered().vector();
