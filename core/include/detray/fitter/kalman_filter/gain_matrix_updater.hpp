@@ -18,6 +18,7 @@ struct gain_matrix_updater {
     using output_type bool;
     using matrix_operator = typename algebra_t::matrix_operator;
 
+    /*
     template <typename mask_group_t, typename index_t, typename surface_t,
               typename track_state_t>
     DETRAY_HOST_DEVICE inline output_type operator()(
@@ -83,6 +84,7 @@ struct gain_matrix_updater {
 
         return true;
     }
+    */
 };
 
 }  // namespace detray
