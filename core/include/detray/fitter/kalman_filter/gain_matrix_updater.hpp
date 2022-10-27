@@ -84,7 +84,7 @@ struct gain_matrix_updater {
 
         return true;
     }
-    */
+    * /
 };
 
 }  // namespace detray

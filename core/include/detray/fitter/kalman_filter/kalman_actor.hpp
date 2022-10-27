@@ -13,13 +13,15 @@
 
 namespace detray {
 
-template <typename algebra_t>
-struct kalman_updater : actor {
+template <typename algebra_t, template <typename...> class vector_t>
+struct kalman_actor : actor {
 
-    struct state {};
+    struct state {
+        state()
 
-    // Reference: Application of Kalman filtering to track and vertex fitting,
-    // R.Frühwirth, NIM A
+            vector_t<track_state> m_track_states;
+    };
+
     struct kernel {
         using output_type bool;
         using matrix_operator = typename algebra_t::matrix_operator;
@@ -29,6 +31,9 @@ struct kalman_updater : actor {
         DETRAY_HOST_DEVICE inline output_type operator()(
             const mask_group_t& mask_group, const index_t& /*index*/,
             const surface_t& surface, track_state_t& trk_state) const {
+
+            // Reference: Application of Kalman filtering to track and vertex
+            // fitting, R.Frühwirth, NIM A
 
             // Mask associated with the track state
             const auto& mask = mask_group[surface.mask().index()];
@@ -93,7 +98,7 @@ struct kalman_updater : actor {
     };
 
     template <typename propagator_state_t>
-    DETRAY_HOST_DEVICE void operator()(state& /*resetter_state*/,
+    DETRAY_HOST_DEVICE void operator()(state& /*kalman_actor_state*/,
                                        propagator_state_t& propagation) const {
 
         auto& navigation = propagation._navigation;
@@ -103,7 +108,18 @@ struct kalman_updater : actor {
         if (navigation.is_on_module() &&
             navigation.current()->sf_id == surface_id::e_sensitive) {
 
-    }
-};
+            auto det = navigation.detector();
+            const auto& mask_store = det->mask_store();
+
+            // Intersection
+            const auto& is = navigation.current();
+
+            // Surface
+            const auto& surface = det->surface_by_index(is->index);
+
+            // mask_store.template call<kernel>(surface.mask(), surface,
+            // stepping);
+        }
+    };
 
 }  // namespace detray
