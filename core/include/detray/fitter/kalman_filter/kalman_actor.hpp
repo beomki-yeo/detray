@@ -17,9 +17,10 @@ template <typename algebra_t, template <typename...> class vector_t>
 struct kalman_actor : actor {
 
     struct state {
-        state()
+        state() {}
 
-            vector_t<track_state> m_track_states;
+        vector_t<track_state> m_track_states;
+        std::size_t current_state_id = 0;
     };
 
     struct kernel {
@@ -98,7 +99,7 @@ struct kalman_actor : actor {
     };
 
     template <typename propagator_state_t>
-    DETRAY_HOST_DEVICE void operator()(state& /*kalman_actor_state*/,
+    DETRAY_HOST_DEVICE void operator()(state& s,
                                        propagator_state_t& propagation) const {
 
         auto& navigation = propagation._navigation;
@@ -107,6 +108,11 @@ struct kalman_actor : actor {
         // triggered only for sensitive surfaces
         if (navigation.is_on_module() &&
             navigation.current()->sf_id == surface_id::e_sensitive) {
+
+            if (navigation.current_object() !=
+                s.m_track_states[s.current_id].surface_id()) {
+                propagation._heartbeat &= navigation.abort();
+            }
 
             auto det = navigation.detector();
             const auto& mask_store = det->mask_store();
@@ -117,8 +123,10 @@ struct kalman_actor : actor {
             // Surface
             const auto& surface = det->surface_by_index(is->index);
 
-            // mask_store.template call<kernel>(surface.mask(), surface,
-            // stepping);
+            mask_store.template call<kernel>(surface.mask(), surface,
+                                             s.m_track_states[s.current_id]);
+
+            s.current_id++;
         }
     };
 
