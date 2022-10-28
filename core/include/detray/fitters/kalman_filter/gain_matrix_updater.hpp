@@ -9,29 +9,31 @@
 
 // Project include(s).
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/track_parametrization.hpp"
 
 namespace detray {
 
 template <typename algebra_t>
 struct gain_matrix_updater {
-
-    using output_type bool;
+    using output_type = bool;
     using matrix_operator = typename algebra_t::matrix_operator;
 
-    /*
     template <typename mask_group_t, typename index_t, typename surface_t,
               typename track_state_t>
     DETRAY_HOST_DEVICE inline output_type operator()(
         const mask_group_t& mask_group, const index_t& /*index*/,
         const surface_t& surface, track_state_t& trk_state) const {
 
+        // Reference: Application of Kalman filtering to track and vertex
+        // fitting, R.Frühwirth, NIM A
+
         // Mask associated with the track state
         const auto& mask = mask_group[surface.mask().index()];
 
         // Some identity matrices
         const auto I66 =
-            matrix_operator().identity<e_bound_size, e_bound_size>();
-        const auto I22 = matrix_operator().identity<2, 2>();
+            matrix_operator().template identity<e_bound_size, e_bound_size>();
+        const auto I22 = matrix_operator().template identity<2, 2>();
 
         // projection matrix
         // Dimension: (2 X 6)
@@ -39,7 +41,7 @@ struct gain_matrix_updater {
 
         // Measurement data on surface
         // Dimension: (2 X 1)
-        const auto& meas = trk_state.measurement();
+        const auto& meas_local = trk_state.measurement_local();
 
         // Predicted vector of bound track parameters
         // Dimension: (6 X 1)
@@ -49,9 +51,9 @@ struct gain_matrix_updater {
         // Dimension: (6 X 6)
         const auto& predicted_cov = trk_state.predicted().covaraince();
 
-        // Spatial resolution (Measurement error)
+        // Spatial resolution (Measurement covariance)
         // Dimension: (2 X 2)
-        const auto V = trk_state.measurement_error();
+        const auto V = trk_state.measurement_covariance();
 
         // Dimension: (2 X 6) * (6 X 6) * (6 X 2)
         const auto M = H * predicted_cov * matrix_operator().transpose(H) + V;
@@ -66,13 +68,13 @@ struct gain_matrix_updater {
         auto& filtered_cov = trk_state.filtered().covariance();
 
         // Dimension: (6 X 1) + (6 X 2) * [ (2 X 1) - (2 X 6) * (6 X 1) ]
-        filtered_vec = predicted_vec + K * (meas - H * predicted_vec);
+        filtered_vec = predicted_vec + K * (meas_local - H * predicted_vec);
         // Dimension: [ (6 X 6) - (6 X 2) * (2 X 6) ] * (6 X 6)
         filtered_cov = (I66 - K * H) * predicted_cov;
 
         // Residual between measurement and (projected) filtered vector
         // Dimension: (2 X 1) - (2 X 6) * (6 X 1);
-        const auto residual = meas - H * filtered_vec;
+        const auto residual = meas_local - H * filtered_vec;
 
         // Calculate the chi square
         auto& chi2 = trk_state.chi2();
@@ -84,27 +86,6 @@ struct gain_matrix_updater {
 
         return true;
     }
-    * /
 };
 
 }  // namespace detray
-
-/*
-    template <typename track_state_t, typename propagation_state_t>
-    bool operator()(track_state_t& trk_state,
-                    const propagation_state_t& propagation) const {
-
-        auto& navigation = propagation._navigation;
-        auto& stepping = propagation._stepping;
-        auto det = navigation.detector();
-
-        // Get mask store
-        const auto& mask_store = det->mask_store();
-
-        // Get surface
-        const auto& surface = det->surface_by_index(trk_state.surface());
-
-        // Run the functor
-        return mask_store.template call<functor>(surface.mask(), trk_state);
-    }
-*/

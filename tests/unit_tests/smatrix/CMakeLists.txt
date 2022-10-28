@@ -21,6 +21,7 @@ detray_add_test( smatrix
    "smatrix_cylinder_intersection.cpp"
    "smatrix_cylinder.cpp"
    "smatrix_detector.cpp"
+   "smatrix_fitter_kalman_filter.cpp"
    "smatrix_geometry_volume_graph.cpp"
    "smatrix_geometry_linking.cpp"
    "smatrix_geometry_navigation.cpp"

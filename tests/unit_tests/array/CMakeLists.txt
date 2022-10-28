@@ -21,6 +21,7 @@ detray_add_test( array
    "array_cylinder_intersection.cpp"
    "array_cylinder.cpp"
    "array_detector.cpp"
+   "array_fitter_kalman_filter.cpp"
    "array_geometry_volume_graph.cpp"
    "array_geometry_linking.cpp"
    "array_geometry_navigation.cpp" 
