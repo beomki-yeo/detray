@@ -188,12 +188,11 @@ endif()
 add_subdirectory( core )
 add_subdirectory( plugins )
 add_subdirectory( io )
+add_subdirectory( utils )
 
 # Set up the test(s).
 include( CTest )
-if( BUILD_TESTING AND DETRAY_BUILD_TESTING )
-  add_subdirectory( tests )
-endif()
+add_subdirectory( tests )
 
 # Set up the packaging of the project.
 include( detray-packaging )
