@@ -123,10 +123,9 @@ void detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     matrix_operator().set_block(D, dGdL, 4, 7);
 
     /// Calculate (4,4) element of equation (17)
-    /// NOTE: Let's skip this element for the moment
-    /// const auto p = getter::norm(track.mom());
-    /// matrix_operator().element(D, 3, 7) =
-    /// h * mass * mass * qop * getter::perp(vector2{1, mass / p});
+    const auto p = getter::norm(track.mom());
+    matrix_operator().element(D, 3, 7) =
+        h * mass * mass * qop * getter::perp(vector2{1, mass / p});
 
     this->_jac_transport = D * this->_jac_transport;
 }
