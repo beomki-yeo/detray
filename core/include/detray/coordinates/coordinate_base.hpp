@@ -219,6 +219,7 @@ struct coordinate_base {
         free_matrix path_correction =
             matrix_operator().template zero<e_free_size, e_free_size>();
 
+        /*
         // Position and direction
         const auto pos = stepping().pos();
         const auto dir = stepping().dir();
@@ -251,6 +252,7 @@ struct coordinate_base {
 
         matrix_operator().template set_block<3, 3>(path_correction, drdr0,
                                                    e_free_pos0, e_free_pos0);
+        */
 
         return path_correction;
     }
