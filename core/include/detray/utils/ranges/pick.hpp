@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -166,6 +166,17 @@ class pick_view : public detray::ranges::view_interface<
           m_range_end{detray::ranges::end(std::forward<range_t>(range))},
           m_seq_begin{detray::ranges::begin(std::forward<sequence_t>(seq))},
           m_seq_end{detray::ranges::end(std::forward<sequence_t>(seq))} {}
+
+    /// Copy constructor
+    DETRAY_HOST_DEVICE
+    constexpr pick_view(const pick_view &other)
+        : m_range_begin{other.m_range_begin},
+          m_range_end{other.m_range_end},
+          m_seq_begin{other.m_seq_begin},
+          m_seq_end{other.m_seq_end} {}
+
+    /// Default destructor
+    DETRAY_HOST_DEVICE ~pick_view() {}
 
     /// Copy assignment operator
     DETRAY_HOST_DEVICE

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -95,8 +95,7 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
 
     // Compare
     for (std::size_t i = 0; i < z_tel_det1.surfaces().size(); ++i) {
-        EXPECT_TRUE(z_tel_det1.surface_by_index(i) ==
-                    z_tel_det2.surface_by_index(i));
+        EXPECT_TRUE(z_tel_det1.surfaces(i) == z_tel_det2.surfaces(i));
     }
 
     //
