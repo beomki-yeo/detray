@@ -233,7 +233,7 @@ TEST_P(TelescopeDetectorSimulation, telescope_detector_simulation) {
     measurement_smearer<scalar> smearer(50.f * unit<scalar>::um,
                                         50.f * unit<scalar>::um);
 
-    std::size_t n_events{98u};
+    std::size_t n_events{1000u};
 
     auto sim = simulator(n_events, detector, std::move(generator), smearer);
 

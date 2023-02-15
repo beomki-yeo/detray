@@ -220,8 +220,6 @@ struct print_inspector : actor {
 
         printer.stream << "step_size: " << std::setw(10) << stepping._step_size
                        << std::endl;
-
-        // std::cout << printer.stream.str();
     }
 };
 
