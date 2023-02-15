@@ -180,6 +180,8 @@ struct print_inspector : actor {
         const auto &navigation = prop_state._navigation;
         const auto &stepping = prop_state._stepping;
 
+        printer.stream.str(std::string());
+
         printer.stream << std::left << std::setw(30);
         switch (navigation.status()) {
             case navigation::status::e_abort:
@@ -218,6 +220,8 @@ struct print_inspector : actor {
 
         printer.stream << "step_size: " << std::setw(10) << stepping._step_size
                        << std::endl;
+
+        // std::cout << printer.stream.str();
     }
 };
 

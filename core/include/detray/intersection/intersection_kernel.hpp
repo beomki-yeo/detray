@@ -60,8 +60,7 @@ struct intersection_initialize {
                 traj, mask, ctf, mask_tolerance, traj.overstep_tolerance()));
 
             for (auto &is : sfi) {
-                if (is.status == intersection::status::e_inside &&
-                    is.path >= traj.overstep_tolerance()) {
+                if (is.status == intersection::status::e_inside) {
                     // is.mask_index = mask_index;
                     is.index = surface.volume();
                     is.sf_id = surface.id();
@@ -121,8 +120,7 @@ struct intersection_update {
             auto sfi = std::move(mask.intersector()(
                 traj, mask, ctf, mask_tolerance, traj.overstep_tolerance()));
 
-            if (sfi[0].status == intersection::status::e_inside &&
-                sfi[0].path >= traj.overstep_tolerance()) {
+            if (sfi[0].status == intersection::status::e_inside) {
                 sfi[0].index = surface.volume();
                 sfi[0].sf_id = surface.id();
                 return sfi[0];

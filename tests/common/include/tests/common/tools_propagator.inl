@@ -89,7 +89,8 @@ struct helix_inspector : actor {
         }
 
         // Nothing has happened yet (first call of actor chain)
-        if (stepping.path_length() < tol || stepping._s < tol) {
+        if (stepping.path_length() < tol ||
+            stepping._path_length_from_the_last_surface < tol) {
             return;
         }
 
@@ -117,21 +118,22 @@ struct helix_inspector : actor {
         // const auto b = stepping._magnetic_field->get_field(last_pos, {});
         detail::helix<transform3> hlx(free_params, &b);
 
-        const auto true_pos = hlx(stepping._s);
+        const auto true_pos = hlx(stepping._path_length_from_the_last_surface);
 
-        const point3 relative_error{1.f / stepping._s *
+        const point3 relative_error{1.f /
+                                    stepping._abs_length_from_the_last_surface *
                                     (stepping().pos() - true_pos)};
 
         ASSERT_NEAR(getter::norm(relative_error), 0.f, tol);
 
-        auto true_J = hlx.jacobian(stepping._s);
+        auto true_J = hlx.jacobian(stepping._path_length_from_the_last_surface);
 
         for (unsigned int i = 0u; i < e_free_size; i++) {
             for (unsigned int j = 0u; j < e_free_size; j++) {
                 ASSERT_NEAR(
                     matrix_operator().element(stepping._jac_transport, i, j),
                     matrix_operator().element(true_J, i, j),
-                    stepping._s * tol * 10.f);
+                    stepping._abs_length_from_the_last_surface * tol * 10.f);
             }
         }
     }

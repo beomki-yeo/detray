@@ -31,7 +31,8 @@ void detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
 
     // Update path length
     this->_path_length += h;
-    this->_s += h;
+    this->_path_length_from_the_last_surface += h;
+    this->_abs_length_from_the_last_surface += std::abs(h);
 }
 
 template <typename magnetic_field_t, typename transform3_t,

@@ -18,8 +18,10 @@
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/simulation/event_writer.hpp"
 #include "detray/simulation/random_scatterer.hpp"
+#include "tests/common/tools/inspectors.hpp"
 
 // System include(s).
+#include <climits>
 #include <memory>
 
 namespace detray {
@@ -31,7 +33,8 @@ struct simulator {
 
     struct config {
         scalar_type overstep_tolerance{-10.f * detray::unit<scalar_type>::um};
-        scalar_type step_constraint{10.f * detray::unit<scalar_type>::mm};
+        scalar_type step_constraint{
+            std::numeric_limits<scalar_type>::infinity()};
     };
 
     using transform3 = typename detector_t::transform3;
@@ -42,7 +45,8 @@ struct simulator {
         composite_actor<dtuple, interactor_t, random_scatterer<interactor_t>>;
 
     using actor_chain_type =
-        actor_chain<dtuple, parameter_transporter<transform3>, material_actor_t,
+        actor_chain<dtuple, propagation::print_inspector,
+                    parameter_transporter<transform3>, material_actor_t,
                     parameter_resetter<transform3>,
                     event_writer<transform3, smearer_t>>;
 
@@ -74,8 +78,9 @@ struct simulator {
             m_scatterer.set_seed(event_id);
             writer.set_seed(event_id);
 
-            auto actor_states = std::tie(m_transporter, m_interactor,
-                                         m_scatterer, m_resetter, writer);
+            auto actor_states =
+                std::tie(m_inspector, m_transporter, m_interactor, m_scatterer,
+                         m_resetter, writer);
 
             for (auto track : *m_track_generator.get()) {
 
@@ -107,6 +112,7 @@ struct simulator {
     smearer_t m_smearer;
 
     /// Actor states
+    typename propagation::print_inspector::state m_inspector{};
     typename parameter_transporter<transform3>::state m_transporter{};
     typename interactor_t::state m_interactor{};
     typename random_scatterer<interactor_t>::state m_scatterer{};
