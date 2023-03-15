@@ -29,4 +29,14 @@ using device_store_type =
 void get_sum(typename host_store_type::view_type store_view,
              vecmem::data::vector_view<double> sum_data);
 
+/// Sum functor
+struct do_sum {
+    template <typename collection_t, typename index_t>
+    DETRAY_HOST_DEVICE inline void operator()(const collection_t& coll,
+                                              const index_t& index,
+                                              double& val) const {
+        val += coll[index];
+    }
+};
+
 }  // namespace detray

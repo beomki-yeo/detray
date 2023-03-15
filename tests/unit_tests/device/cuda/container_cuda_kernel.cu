@@ -21,14 +21,16 @@ __global__ void get_sum_kernel(typename host_store_type::view_type store_view,
     const auto& g1 = store.get<1>();
     const auto& g2 = store.get<2>();
 
-    for (auto e : g0) {
-        sum[0] += e;
+    for (std::size_t i = 0; i < g0.size(); i++) {
+        store.template visit<do_sum>(dtyped_index<>{0, i}, sum[0]);
     }
-    for (auto e : g1) {
-        sum[0] += e;
+
+    for (std::size_t i = 0; i < g1.size(); i++) {
+        store.template visit<do_sum>(dtyped_index<>{1, i}, sum[0]);
     }
-    for (auto e : g2) {
-        sum[0] += e;
+
+    for (std::size_t i = 0; i < g2.size(); i++) {
+        store.template visit<do_sum>(dtyped_index<>{2, i}, sum[0]);
     }
 }
 

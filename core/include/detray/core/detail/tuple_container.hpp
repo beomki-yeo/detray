@@ -118,8 +118,9 @@ class tuple_container {
     DETRAY_HOST_DEVICE decltype(auto) visit(const std::size_t idx,
                                             Args &&... As) const {
 
-        return visit<functor_t>(idx, std::make_index_sequence<sizeof...(Ts)>{},
-                                std::forward<Args>(As)...);
+        return unroll_visit<functor_t>(
+            idx, std::make_index_sequence<sizeof...(Ts)>{},
+            std::forward<Args>(As)...);
     }
 
     private:
@@ -160,9 +161,9 @@ class tuple_container {
               std::size_t... remaining_idcs>
     DETRAY_HOST_DEVICE std::invoke_result_t<
         functor_t, const detail::tuple_element_t<0, tuple_type> &, Args...>
-    visit(const std::size_t idx,
-          std::index_sequence<first_idx, remaining_idcs...> /*seq*/,
-          Args &&... As) const {
+    unroll_visit(const std::size_t idx,
+                 std::index_sequence<first_idx, remaining_idcs...> /*seq*/,
+                 Args &&... As) const {
 
         // Check if the first tuple index is matched to the target ID
         if (idx == first_idx) {
@@ -170,9 +171,9 @@ class tuple_container {
         }
         // Check the next ID
         if constexpr (sizeof...(remaining_idcs) >= 1u) {
-            return visit<functor_t>(idx,
-                                    std::index_sequence<remaining_idcs...>{},
-                                    std::forward<Args>(As)...);
+            return unroll_visit<functor_t>(
+                idx, std::index_sequence<remaining_idcs...>{},
+                std::forward<Args>(As)...);
         }
         // If there is no matching ID, return default output
         if constexpr (not std::is_same_v<
