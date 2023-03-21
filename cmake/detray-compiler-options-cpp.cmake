@@ -14,7 +14,6 @@ endif()
 
 # Respect infinity expressions for IntelLLVM
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES "IntelLLVM")
-   detray_add_flag(CMAKE_CXX_FLAGS "-ffast-math")
    detray_add_flag(CMAKE_CXX_FLAGS "-fhonor-infinities")
    detray_add_flag(CMAKE_CXX_FLAGS "-fno-finite-math-only")
 endif()
