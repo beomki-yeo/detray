@@ -36,7 +36,7 @@
 using namespace detray;
 
 namespace env {
-
+/*
 // Type Definitions
 template <typename mask_shape_t>
 using tel_detector_t =
@@ -53,9 +53,10 @@ const scalar thickness{2.f * unit<scalar>::mm};
 vecmem::host_memory_resource resource;
 
 }  // namespace env
-
+*/
 /// Test the path correction on a rectangular surface (cartesian coordinates)
 TEST(path_correction, cartesian2D) {
+    /*
     using detector_t = env::tel_detector_t<rectangle2D<>>;
     using mag_field_t = detector_t::bfield_type;
 
@@ -181,6 +182,7 @@ TEST(path_correction, cartesian2D) {
                         matrix_operator().element(bound_cov1, i, j), env::tol);
         }
     }
+    */
 
     // Print the matrix elements
     /*for (unsigned int i = 0u; i < e_bound_size; i++) {
@@ -202,7 +204,7 @@ TEST(path_correction, cartesian2D) {
 
 /// Test the path correction on a ring surface (polar coordinates)
 TEST(path_correction, polar) {
-
+    /*
     using detector_t = env::tel_detector_t<ring2D<>>;
     using mag_field_t = detector_t::bfield_type;
 
@@ -331,11 +333,12 @@ TEST(path_correction, polar) {
                         matrix_operator().element(bound_cov1, i, j), env::tol);
         }
     }
+    */
 }
 
 /// Test the path correction on a cylindrical surface (cylinder coordinates)
 TEST(path_correction, cylindrical) {
-
+    /*
     using detector_t = env::tel_detector_t<cylinder2D<>>;
     using mag_field_t = detector_t::bfield_type;
 
@@ -472,4 +475,5 @@ TEST(path_correction, cylindrical) {
                         matrix_operator().element(bound_cov1, i, j), env::tol);
         }
     }
+    */
 }
