@@ -45,6 +45,64 @@ class EnergyLossBetheValidation
     : public ::testing::TestWithParam<
           std::tuple<material<scalar>, scalar, scalar>> {};
 
+TEST(log_energy_loss, log_energy_loss) {
+
+    // Interaction object
+    interaction<scalar> I;
+
+    /*
+    // Declare Silicon without density effect data
+    material<scalar> Si(
+        93.7f * unit<scalar>::mm, 465.2f * unit<scalar>::mm, 28.0855f, 14.f,
+        static_cast<scalar>(2.329 * unit<double>::g / unit<double>::cm3),
+        material_state::e_solid, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
+
+    // Make sure that the density effect data is empty and we will trigger the
+    // approximate equation for landau energy loss
+    EXPECT_EQ(Si.density_effect_data(), detail::density_effect_data<scalar>{});
+
+    // Define Slab
+    material_slab<scalar> slab(Si, 1.f * unit<scalar>::cm);
+    */
+
+    material_slab<scalar> slab(silicon<scalar>(), 1.f * unit<scalar>::cm);
+
+    const int n_samples = 200;
+
+    // mass
+    constexpr scalar m{105.7f * unit<scalar>::MeV};
+
+    // intersection with a zero incidence angle
+    line_plane_intersection is;
+
+    // muon
+    constexpr int pdg = pdg_particle::eMuon;
+
+    for (int i = 0; i < n_samples; i++) {
+        const scalar betagamma = 9.f + 2.f * i / n_samples;
+
+        // momentum
+        const scalar p = m * betagamma;
+
+        // qOverP
+        const scalar qOverP{-1.f / p};
+
+        // Bethe Stopping power in MeV * cm^2 / g
+        const scalar dEdx{
+            I.compute_energy_loss_bethe(is, slab, pdg, m, qOverP, -1.f) /
+            slab.path_segment(is) / slab.get_material().mass_density() /
+            (unit<scalar>::MeV * unit<scalar>::cm2 / unit<scalar>::g)};
+
+        printf("%f   %f   %f \n", betagamma, p, dEdx);
+    }
+
+    const scalar p = 1.101 * unit<scalar>::GeV;
+
+    const scalar betagamma = p / m;
+
+    printf("p %f betagamma %f \n", p, betagamma);
+}
+
 // This tests the material functionalities
 TEST_P(EnergyLossBetheValidation, bethe_energy_loss) {
 
