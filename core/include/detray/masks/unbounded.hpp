@@ -34,18 +34,9 @@ class unbounded {
     template <typename algebra_t>
     using local_frame_type =
         typename shape::template local_frame_type<algebra_t>;
-    /// Local point type
+    /// Local point type (2D)
     template <typename algebra_t>
-    using loc_point_type = typename shape::template loc_point_type<algebra_t>;
-
-    /// Measurement frame
-    template <typename algebra_t>
-    using measurement_frame_type =
-        typename shape::template measurement_frame_type<algebra_t>;
-    /// Local measurement point
-    template <typename algebra_t>
-    using measurement_point_type =
-        typename shape::template measurement_point_type<algebra_t>;
+    using loc_point_type = typename local_frame_type<algebra_t>::point2;
 
     /// Underlying surface geometry
     template <typename intersection_t>

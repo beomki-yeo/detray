@@ -56,23 +56,10 @@ class line {
 
     /// Local coordinate frame for boundary checks
     template <typename algebra_t>
-    using local_frame_type =
-        std::conditional_t<kSquareCrossSect, cartesian3<algebra_t>,
-                           line2<algebra_t>>;
-    /// Local point type for boundary checks (2D or 3D)
+    using local_frame_type = line2<algebra_t>;
+    /// Local point type (3D)
     template <typename algebra_t>
-    using loc_point_type =
-        std::conditional_t<kSquareCrossSect,
-                           typename local_frame_type<algebra_t>::point3,
-                           typename local_frame_type<algebra_t>::point2>;
-
-    /// Measurement frame
-    template <typename algebra_t>
-    using measurement_frame_type = line2<algebra_t>;
-    /// Measurement point type (2D)
-    template <typename algebra_t>
-    using measurement_point_type =
-        typename measurement_frame_type<algebra_t>::point2;
+    using loc_point_type = typename local_frame_type<algebra_t>::point3;
 
     /// Underlying surface geometry: line
     template <typename intersection_t>

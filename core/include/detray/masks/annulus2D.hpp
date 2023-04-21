@@ -74,14 +74,6 @@ class annulus2D {
     template <typename algebra_t>
     using loc_point_type = typename local_frame_type<algebra_t>::point2;
 
-    /// Measurement frame. @todo focal system?
-    template <typename algebra_t>
-    using measurement_frame_type = polar2<algebra_t>;
-    /// Local measurement point (2D)
-    template <typename algebra_t>
-    using measurement_point_type =
-        typename measurement_frame_type<algebra_t>::point2;
-
     /// Underlying surface geometry: planar
     template <typename intersection_t>
     using intersector_type = intersector_t<intersection_t>;

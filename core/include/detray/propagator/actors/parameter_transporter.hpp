@@ -67,7 +67,7 @@ struct parameter_transporter : actor {
 
             // Mask
             const auto& mask = mask_group[index];
-            auto local_coordinate = mask.measurement_frame();
+            auto local_coordinate = mask.local_frame();
 
             // Free vector
             const auto& free_vec = stepping().vector();

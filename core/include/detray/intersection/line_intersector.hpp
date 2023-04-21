@@ -47,11 +47,10 @@ struct line_intersector {
     /// @param mask_tolerance is the tolerance for mask edges
     //
     /// @return the intersection
-    template <
-        typename mask_t, typename surface_t,
-        std::enable_if_t<std::is_same_v<typename mask_t::measurement_frame_type,
-                                        line2<transform3_type>>,
-                         bool> = true>
+    template <typename mask_t, typename surface_t,
+              std::enable_if_t<std::is_same_v<typename mask_t::local_frame_type,
+                                              line2<transform3_type>>,
+                               bool> = true>
     DETRAY_HOST_DEVICE inline intersection_t operator()(
         const ray_type &ray, const surface_t &sf, const mask_t &mask,
         const transform3_type &trf,
@@ -105,26 +104,10 @@ struct line_intersector {
             // point of closest approach on the track
             const point3 m = _p + _d * A;
 
-            // For the radial cross section, the calculation does not need to be
-            // repeated
-            if constexpr (mask_t::shape::square_cross_sect) {
-                // This is cartesian3 for square cross section
-                auto loc3D = mask.to_local_frame(trf, m);
-                is.status = mask.is_inside(loc3D, mask_tolerance);
-
-                // Determine the measurement point from the local point
-
-                // assign the sign depending on the position w.r.t line surface
-                // Right: -1
-                // Left: 1
-                const auto r = vector::cross(_z, _d);
-                is.p2[0] =
-                    -detail::copysign(getter::perp(loc3D), vector::dot(r, t2l));
-            } else {
-                // local frame and measurement frame are identical
-                is.p2 = mask.to_measurement_frame(trf, m, _d);
-                is.status = mask.is_inside(is.p2, mask_tolerance);
-            }
+            const typename mask_t::loc_point_t local =
+                mask.to_local_frame(trf, m, _d);
+            is.status = mask.is_inside(local, mask_tolerance);
+            is.p2 = {local[0], local[1]};
 
             // prepare some additional information in case the intersection
             // is valid
@@ -159,11 +142,10 @@ struct line_intersector {
     /// @param mask is the input mask that defines the surface extent
     /// @param trf is the surface placement transform
     /// @param mask_tolerance is the tolerance for mask edges
-    template <
-        typename mask_t,
-        std::enable_if_t<std::is_same_v<typename mask_t::measurement_frame_type,
-                                        line2<transform3_type>>,
-                         bool> = true>
+    template <typename mask_t,
+              std::enable_if_t<std::is_same_v<typename mask_t::local_frame_type,
+                                              line2<transform3_type>>,
+                               bool> = true>
     DETRAY_HOST_DEVICE inline void update(
         const ray_type &ray, intersection_t &sfi, const mask_t &mask,
         const transform3_type &trf,

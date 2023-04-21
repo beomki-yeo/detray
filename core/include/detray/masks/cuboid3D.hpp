@@ -51,13 +51,6 @@ class cuboid3D {
     template <typename algebra_t>
     using loc_point_type = typename local_frame_type<algebra_t>::point3;
 
-    /// Measurement frame
-    template <typename algebra_t>
-    using measurement_frame_type = local_frame_type<algebra_t>;
-    /// Local measurement point (2D)
-    template <typename algebra_t>
-    using measurement_point_type = loc_point_type<algebra_t>;
-
     /// Underlying surface geometry: not a surface
     template <typename = void>
     using intersector_type = intersector_t;

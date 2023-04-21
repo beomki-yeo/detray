@@ -74,7 +74,7 @@ struct plane_intersector {
             if (is.path >= ray.overstep_tolerance()) {
 
                 const point3 p3 = ro + is.path * rd;
-                is.p2 = mask.to_local_frame(trf, p3, ray.dir());
+                is.p2 = mask.to_local_frame(trf, p3, rd);
                 is.status = mask.is_inside(is.p2, mask_tolerance);
 
                 // prepare some additional information in case the intersection
