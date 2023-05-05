@@ -5,11 +5,12 @@
 # Mozilla Public License Version 2.0
 
 # Set up the core tests.
-detray_add_test( core
+detray_add_test(core
    "grids_axis.cpp"
    "grids_grid2.cpp"
    "grids_populator.cpp"
    "grids_serializer.cpp"
+   "masks_mask_property.cpp"
    "thrust_tuple.cpp"
    "tools_hash_tree.cpp"
    "tuple_helpers.cpp"
@@ -18,4 +19,4 @@ detray_add_test( core
    "utils_ranges.cpp"
    "utils_quadratic_equation.cpp"
    "utils_sort.cpp"
-   LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::core_array )
+   LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::core_array)
