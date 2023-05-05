@@ -76,7 +76,7 @@ macro( detray_add_cpu_test algebra )
       "utils_unit_vectors.cpp"
       LINK_LIBRARIES GTest::gtest GTest::gtest_main detray::core_${algebra}
                      detray::test detray_tests_common covfie::core vecmem::core
-                     detray::io detray::utils)
+                     detray::io detray::utils dfelibs::dfelibs)
 endmacro()
 
 # Build the array tests.
