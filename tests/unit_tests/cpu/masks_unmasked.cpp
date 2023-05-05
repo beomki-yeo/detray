@@ -9,14 +9,15 @@
 
 #include "detray/masks/masks.hpp"
 #include "detray/masks/unmasked.hpp"
+#include "detray/test/types.hpp"
 
 using namespace detray;
-using point3_t = __plugin::point3<detray::scalar>;
+using point3_t = test::point3;
 
 constexpr scalar tol{1e-7f};
 
 /// This tests the basic functionality of an unmasked plane
-TEST(mask, unmasked) {
+GTEST_TEST(detray_core, unmasked) {
     point3_t p2 = {0.5f, -9.f, 0.f};
 
     mask<unmasked> u{};

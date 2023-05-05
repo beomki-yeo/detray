@@ -14,6 +14,7 @@
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/simulation/simulator.hpp"
 #include "detray/utils/statistics.hpp"
+#include "detray/test/types.hpp"
 
 // VecMem include(s).
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -25,12 +26,12 @@
 #include <limits>
 
 using namespace detray;
-using transform3 = __plugin::transform3<detray::scalar>;
+using transform3 = test::transform3;
 
 constexpr scalar tol{1e-7f};
 
 struct test_param {
-    using point2 = __plugin::point2<scalar>;
+    using point2 = test::point2;
 
     test_param(scalar loc_0, scalar loc_1) {
         loc[0] = loc_0;
@@ -42,7 +43,7 @@ struct test_param {
 };
 
 // Test measurement smearer
-TEST(check_simulation, measurement_smearer) {
+GTEST_TEST(detray_core, measurement_smearer) {
 
     test_param param(1.f, 2.f);
     measurement_smearer<scalar> smearer(0.f, 0.f);
@@ -68,7 +69,7 @@ TEST(check_simulation, measurement_smearer) {
     ASSERT_NEAR(local_rectangle_2[1], -3.f, tol);
 }
 
-TEST(check_simulation, toy_geometry) {
+GTEST_TEST(detray_core, toy_geometry_simulation) {
 
     // Use deterministic random number generator for testing
     using normal_gen_t =

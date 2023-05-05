@@ -9,14 +9,15 @@
 
 #include "detray/definitions/units.hpp"
 #include "detray/masks/masks.hpp"
+#include "detray/test/types.hpp"
 
 using namespace detray;
-using point3_t = __plugin::point3<detray::scalar>;
+using point3_t = test::point3;
 
 constexpr scalar tol{1e-7f};
 
 /// This tests the basic functionality of a ring
-TEST(mask, ring2D) {
+GTEST_TEST(detray_core, ring2D) {
     using point_t = point3_t;
 
     point_t p2_pl_in = {0.5f, -2.f, 0.f};

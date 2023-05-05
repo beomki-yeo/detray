@@ -9,10 +9,10 @@
 
 #include "detray/definitions/units.hpp"
 #include "detray/masks/masks.hpp"
+#include "detray/test/types.hpp"
 
 using namespace detray;
-using namespace __plugin;
-using point3_t = __plugin::point3<detray::scalar>;
+using point3_t = test::point3;
 
 namespace {
 
@@ -25,7 +25,7 @@ constexpr scalar hz{50.f * unit<scalar>::mm};
 }  // anonymous namespace
 
 /// This tests the basic functionality of a line with a radial cross section
-TEST(mask, line_radial_cross_sect) {
+GTEST_TEST(detray_core, line_radial_cross_sect) {
     using point_t = point3_t;
 
     const point_t ln_in{0.09f, 0.5f, 0.f};
@@ -67,7 +67,7 @@ TEST(mask, line_radial_cross_sect) {
 }
 
 /// This tests the basic functionality of a line with a square cross section
-TEST(mask, line_square_cross_sect) {
+GTEST_TEST(detray_core, line_square_cross_sect) {
     using point_t = point3_t;
 
     const point_t ln_in{1.1f, 0.9f, constant<scalar>::pi_4};

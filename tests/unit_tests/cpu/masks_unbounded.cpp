@@ -9,6 +9,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/masks/unbounded.hpp"
+#include "detray/test/types.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>
@@ -18,13 +19,13 @@
 #include <type_traits>
 
 using namespace detray;
-using point3_t = __plugin::point3<detray::scalar>;
+using point3_t = test::point3;
 
 constexpr scalar tol{1e-7f};
 
 /// This tests the basic functionality of an unbounded rectangle shape
-TEST(mask, unbounded) {
-    using transform3_t = __plugin::transform3<scalar>;
+GTEST_TEST(detray_core, unbounded) {
+    using transform3_t = test::transform3;
 
     using shape_t = rectangle2D<>;
     using unbounded_t = unbounded<shape_t>;

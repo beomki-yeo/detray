@@ -9,15 +9,15 @@
 
 #include "detray/definitions/units.hpp"
 #include "detray/masks/masks.hpp"
+#include "detray/test/types.hpp"
 
 using namespace detray;
-using namespace __plugin;
-using point3_t = __plugin::point3<detray::scalar>;
+using point3_t = test::point3;
 
 constexpr scalar tol{1e-7f};
 
 /// This tests the basic functionality of a single value mask (index 0)
-TEST(mask, single3_0) {
+GTEST_TEST(detray_core, single3_0) {
     using point_t = point3_t;
 
     point_t p3_in = {0.5f, -9.f, 0.f};
@@ -48,7 +48,7 @@ TEST(mask, single3_0) {
 }
 
 /// This tests the basic functionality of a single value mask (index 1)
-TEST(mask, single3_1) {
+GTEST_TEST(detray_core, single3_1) {
     using point_t = point3_t;
 
     point_t p3_in = {0.5f, -9.f, 0.f};
@@ -91,7 +91,7 @@ TEST(mask, single3_1) {
 }
 
 /// This tests the basic functionality of a single value mask (index 2)
-TEST(mask, single3_2) {
+GTEST_TEST(detray_core, single3_2) {
     using point_t = point3_t;
 
     point_t p3_in = {0.5f, -9.f, 0.f};
