@@ -26,7 +26,7 @@ using matrix_type = typename matrix_operator::template matrix_type<ROWS, COLS>;
 
 constexpr scalar isclose{1e-5f};
 
-GTEST_TEST(detray_core, line2_case1) {
+GTEST_TEST(detray_coordinates, line2_case1) {
 
     // Preparation work
     vector3 z = {1.f, 1.f, 1.f};

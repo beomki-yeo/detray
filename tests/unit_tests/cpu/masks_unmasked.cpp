@@ -15,7 +15,7 @@ using namespace detray;
 using point3_t = test::point3;
 
 /// This tests the basic functionality of an unmasked plane
-GTEST_TEST(detray_core, unmasked) {
+GTEST_TEST(detray_masks, unmasked) {
     point3_t p2 = {0.5f, -9.f, 0.f};
 
     mask<unmasked> u{};

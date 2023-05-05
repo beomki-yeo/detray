@@ -17,7 +17,7 @@ using point3_t = test::point3;
 constexpr scalar tol{1e-7f};
 
 /// This tests the basic functionality of a trapezoid
-GTEST_TEST(detray_core, trapezoid2D) {
+GTEST_TEST(detray_masks, trapezoid2D) {
     using point_t = point3_t;
 
     point_t p2_in = {1.f, -0.5f, 0.f};

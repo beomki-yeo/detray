@@ -24,7 +24,7 @@ using point3_t = test::point3;
 constexpr scalar tol{1e-7f};
 
 /// This tests the basic functionality of an unbounded rectangle shape
-GTEST_TEST(detray_core, unbounded) {
+GTEST_TEST(detray_masks, unbounded) {
     using transform3_t = test::transform3;
 
     using shape_t = rectangle2D<>;
