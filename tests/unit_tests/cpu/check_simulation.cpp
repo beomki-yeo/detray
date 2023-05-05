@@ -43,7 +43,7 @@ struct test_param {
 };
 
 // Test measurement smearer
-GTEST_TEST(detray_simulation, measurement_smearer) {
+TEST(detray_simulation, measurement_smearer) {
 
     test_param param(1.f, 2.f);
     measurement_smearer<scalar> smearer(0.f, 0.f);
@@ -69,7 +69,7 @@ GTEST_TEST(detray_simulation, measurement_smearer) {
     ASSERT_NEAR(local_rectangle_2[1], -3.f, tol);
 }
 
-GTEST_TEST(detray_simulation, toy_geometry_simulation) {
+TEST(detray_simulation, toy_geometry_simulation) {
 
     // Use deterministic random number generator for testing
     using normal_gen_t =
