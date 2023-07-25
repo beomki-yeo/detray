@@ -258,6 +258,50 @@ GTEST_TEST(detray_intersection, helix_cylinder_intersector) {
     EXPECT_NEAR(global1[2], pos_far[2], tol);
 }
 
+/// Test the intersection between a helical trajectory and a cylinder
+GTEST_TEST(detray_intersection, helix_cylinder_intersector_exception) {
+
+    // Track defined on origin point
+    const free_track_parameters<transform3_t> free_param(
+        {0.f, 0.f, 0.f}, 0.f,
+        {-2.51265 * unit<scalar>::GeV, -7.73315 * unit<scalar>::GeV,
+         5.82108 * unit<scalar>::GeV},
+        -1.f);
+
+    // Magnetic field
+    const vector3 bfield{0.f, 0.f, 2.f * unit<scalar>::T};
+
+    // Test helix
+    const helix_t hlx2(free_param, &bfield);
+
+    // Transform matrix
+    const transform3_t trf({0.f, 0.f, 0.f}, {0.f, 0.f, 1.f}, {1.f, 0.f, 0.f});
+
+    // Cylinder surface (5 cm radius)
+    const scalar r{600.f * unit<scalar>::mm};
+    const scalar hz{500.f * unit<scalar>::mm};
+    const mask<cylinder2D<>> cylinder{0u, r, -hz, hz};
+
+    const detail::helix_cylinder_intersector<intersection_t> hci;
+
+    // Get the intersection on the next surface
+    const auto is = hci(hlx2, surface_descriptor<>{}, cylinder, trf, tol);
+
+    // First solution
+    /*
+    const vector3 pos_near = hlx.pos(is[0].path);
+
+    const vector3 loc_near = pos_near - trl;
+
+    const scalar phi_near = std::acos(
+        vector::dot(w, loc_near) / (getter::norm(w) * getter::norm(loc_near)));
+    */
+    EXPECT_TRUE(is[0].status == intersection::status::e_inside);
+    EXPECT_TRUE(is[0].direction == intersection::direction::e_opposite);
+    EXPECT_TRUE(is[1].status == intersection::status::e_inside);
+    EXPECT_TRUE(is[1].direction == intersection::direction::e_along);
+}
+
 /// Test the intersection between a helical trajectory and a line
 GTEST_TEST(detray_intersection, helix_line_intersector) {
 
