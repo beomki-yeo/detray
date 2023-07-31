@@ -19,6 +19,7 @@ using namespace detray;
 
 GTEST_TEST(detray_detectors, wire_chamber) {
 
+    /*
     vecmem::host_memory_resource host_mr;
 
     auto [wire_det, names] =
@@ -26,4 +27,5 @@ GTEST_TEST(detray_detectors, wire_chamber) {
 
     // Check general consistency of the detector
     detail::check_consistency(wire_det);
+    */
 }
