@@ -179,7 +179,8 @@ class geometry_writer : public writer_interface<detector_t> {
 
         for (const auto& sf_desc : det.surface_lookup()) {
             if (sf_desc.volume() == vol_desc.index()) {
-                vol_data.surfaces.push_back(serialize(surface{det, sf_desc}));
+                // vol_data.surfaces.push_back(serialize(surface{det,
+                // sf_desc}));
             }
         }
 
