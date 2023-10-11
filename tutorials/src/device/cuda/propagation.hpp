@@ -9,6 +9,7 @@
 
 // Project include(s).
 #include "detray/definitions/units.hpp"
+#include "detray/detectors/bfield.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
@@ -21,6 +22,9 @@
 #include "detray/tracks/tracks.hpp"
 #include "detray/tutorial/types.hpp"
 
+// Covfie include(s)
+#include <covfie/cuda/backend/primitive/cuda_device_array.hpp>
+
 namespace detray::tutorial {
 
 // Detector
@@ -32,9 +36,18 @@ using detector_device_t =
 using navigator_t = navigator<detector_device_t>;
 using intersection_t = navigator_t::intersection_type;
 
-// Stepper
-using field_t = covfie::field<detray::bfield::const_bknd_t>;
-using stepper_t = rk_stepper<field_t::view_t, detray::tutorial::transform3>;
+// Magnetic field types
+using inhom_cuda_bknd_t = covfie::backend::affine<
+    covfie::backend::nearest_neighbour<covfie::backend::strided<
+        covfie::vector::ulong3,
+        covfie::backend::cuda_device_array<
+            covfie::vector::vector_d<detray::scalar, 3>>>>>;
+using field_host_t = covfie::field<detray::bfield::inhom_bknd_t>;
+using field_device_t = covfie::field<inhom_cuda_bknd_t>;
+
+// Stepper (only running device propagation, so need the device field type)
+using stepper_t =
+    rk_stepper<field_device_t::view_t, detray::tutorial::transform3>;
 
 // Actors
 using actor_chain_t =
@@ -48,8 +61,8 @@ using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
 /// Propagation tutorial function
 void propagation(
-    typename detector_host_t::detector_view_type det_data,
-    field_t::view_t field_view,
+    typename detector_host_t::view_type det_data,
+    covfie::field_view<inhom_cuda_bknd_t> field_data,
     const vecmem::data::vector_view<
         free_track_parameters<detray::tutorial::transform3>>
         tracks_data,

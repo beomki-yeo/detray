@@ -36,7 +36,7 @@ using disc_t = typename mask_defs::template get_type<disc_id>::type;
 using cylinder_t = typename mask_defs::template get_type<cylinder_id>::type;
 
 /// declaration of a test function for detector
-void detector_test(typename detector_host_t::detector_view_type det_data,
+void detector_test(typename detector_host_t::view_type det_data,
                    vecmem::data::vector_view<volume_t> volumes_data,
                    vecmem::data::vector_view<surface_t> surfaces_data,
                    vecmem::data::vector_view<transform3_t> transforms_data,

@@ -123,20 +123,15 @@ class detector {
     using volume_finder =
         typename metadata::template volume_finder<container_t>;
 
-    // TODO: Remove
-    using detector_view_type = detector_view<metadata>;
-
-    // TODO: rename back to 'view_type' etc, once covfie is wrapped in the
-    // container view/buffer formalism
     /// Detector view types
-    using view_t = dmulti_view<
+    using view_type = dmulti_view<
         dvector_view<volume_type>, typename transform_container::view_type,
         typename mask_container::view_type,
         typename material_container::view_type,
         typename surface_container::view_type, dvector_view<surface_type>,
         typename volume_finder::view_type>;
 
-    using const_view_t =
+    using const_view_type =
         dmulti_view<dvector_view<const volume_type>,
                     typename transform_container::const_view_type,
                     typename mask_container::const_view_type,
@@ -146,7 +141,7 @@ class detector {
                     typename volume_finder::const_view_type>;
 
     /// Detector buffer types
-    using buffer_t = dmulti_buffer<
+    using buffer_type = dmulti_buffer<
         dvector_buffer<volume_type>, typename transform_container::buffer_type,
         typename mask_container::buffer_type,
         typename material_container::buffer_type,
@@ -175,20 +170,17 @@ class detector {
           _resource(&resource) {}
 
     /// Constructor with detector_data
-    template <typename detector_data_type,
-              std::enable_if_t<!std::is_base_of_v<vecmem::memory_resource,
-                                                  detector_data_type>,
-                               bool> = true>
-    DETRAY_HOST_DEVICE explicit detector(detector_data_type &det_data)
-        : _volumes(detray::detail::get<0>(det_data._detector_data.m_view)),
-          _transforms(detray::detail::get<1>(det_data._detector_data.m_view)),
-          _masks(detray::detail::get<2>(det_data._detector_data.m_view)),
-          _materials(detray::detail::get<3>(det_data._detector_data.m_view)),
-          _surfaces(detray::detail::get<4>(det_data._detector_data.m_view)),
-          _surface_lookup(
-              detray::detail::get<5>(det_data._detector_data.m_view)),
-          _volume_finder(
-              detray::detail::get<6>(det_data._detector_data.m_view)) {}
+    template <typename detector_view_t,
+              typename std::enable_if_t<
+                  detail::is_device_view_v<detector_view_t>, bool> = true>
+    DETRAY_HOST_DEVICE explicit detector(detector_view_t &det_data)
+        : _volumes(detray::detail::get<0>(det_data.m_view)),
+          _transforms(detray::detail::get<1>(det_data.m_view)),
+          _masks(detray::detail::get<2>(det_data.m_view)),
+          _materials(detray::detail::get<3>(det_data.m_view)),
+          _surfaces(detray::detail::get<4>(det_data.m_view)),
+          _surface_lookup(detray::detail::get<5>(det_data.m_view)),
+          _volume_finder(detray::detail::get<6>(det_data.m_view)) {}
     /// @}
 
     /// Add a new volume and retrieve a reference to it.
@@ -519,6 +511,24 @@ class detector {
         return *std::max_element(n_candidates.begin(), n_candidates.end());
     }
 
+    /// @returns view of a detector
+    DETRAY_HOST auto get_data() -> view_type {
+        return view_type{
+            detray::get_data(_volumes),      detray::get_data(_transforms),
+            detray::get_data(_masks),        detray::get_data(_materials),
+            detray::get_data(_surfaces),     detray::get_data(_surface_lookup),
+            detray::get_data(_volume_finder)};
+    }
+
+    /// @returns const view of a detector
+    DETRAY_HOST auto get_data() const -> const_view_type {
+        return const_view_type{
+            detray::get_data(_volumes),      detray::get_data(_transforms),
+            detray::get_data(_masks),        detray::get_data(_materials),
+            detray::get_data(_surfaces),     detray::get_data(_surface_lookup),
+            detray::get_data(_volume_finder)};
+    }
+
     /// @param names maps a volume to its string representation.
     /// @returns a string representation of the detector.
     DETRAY_HOST
@@ -587,114 +597,5 @@ class detector {
     /// the memory for the detector containers is allocated
     vecmem::memory_resource *_resource = nullptr;
 };
-
-/// @brief The detector data buffer
-///
-/// Contains the buffers for all detector components plus the covfie device
-/// field type, which is being copied to device when this type gets constructed
-template <typename metadata_t>
-struct detector_buffer {
-
-    using detector_type = detector<metadata_t, host_container_types>;
-
-    /// Automatic buffer creation with the given parameters
-    detector_buffer(detector_type &det, vecmem::memory_resource &mr,
-                    vecmem::copy &cpy,
-                    detray::copy cpy_type = detray::copy::sync,
-                    vecmem::data::buffer_type buff_type =
-                        vecmem::data::buffer_type::fixed_size)
-        : _detector_buffer(detray::get_buffer(detray::get_data(det.volumes()),
-                                              mr, cpy, cpy_type, buff_type),
-                           detray::get_buffer(det.transform_store(), mr, cpy,
-                                              cpy_type, buff_type),
-                           detray::get_buffer(det.mask_store(), mr, cpy,
-                                              cpy_type, buff_type),
-                           detray::get_buffer(det.material_store(), mr, cpy,
-                                              cpy_type, buff_type),
-                           detray::get_buffer(det.surface_store(), mr, cpy,
-                                              cpy_type, buff_type),
-                           detray::get_buffer(det.surface_lookup(), mr, cpy,
-                                              cpy_type, buff_type),
-                           detray::get_buffer(det.volume_search_grid(), mr, cpy,
-                                              cpy_type, buff_type)) {}
-
-    /// Buffers were created manually
-    detector_buffer(
-        detail::get_buffer_t<typename detector_type::volume_container>
-            &&vol_buffer,
-        typename detector_type::transform_container::buffer_type &&trf_buffer,
-        typename detector_type::mask_container::buffer_type &&msk_buffer,
-        typename detector_type::material_container::buffer_type &&mat_buffer,
-        typename detector_type::surface_container::buffer_type &&sf_buffer,
-        detail::get_buffer_t<typename detector_type::surface_lookup_container>
-            &&sf_lkp_buffer,
-        typename detector_type::volume_finder::buffer_type &&vgrd_buffer)
-        : _detector_buffer(std::move(vol_buffer), std::move(trf_buffer),
-                           std::move(msk_buffer), std::move(mat_buffer),
-                           std::move(sf_buffer), std::move(sf_lkp_buffer),
-                           std::move(vgrd_buffer)) {}
-
-    /// Buffers for the vecemem types
-    typename detector_type::buffer_t _detector_buffer;
-};
-
-/// @brief The detector view
-///
-/// Contains the views for all detector components, including the device view
-/// of the bfield
-template <typename metadata_t>
-struct detector_view {
-
-    using detector_type = detector<metadata_t, host_container_types>;
-
-    detector_view(detector_type &det)
-        : _detector_data(detray::get_data(det.volumes()),
-                         detray::get_data(det.transform_store()),
-                         detray::get_data(det.mask_store()),
-                         detray::get_data(det.material_store()),
-                         detray::get_data(det.surface_store()),
-                         detray::get_data(det.surface_lookup()),
-                         detray::get_data(det.volume_search_grid())) {}
-
-    detector_view(detector_buffer<metadata_t> &det_buff)
-        : _detector_data(detray::get_data(det_buff._detector_buffer)) {}
-
-    /// Views for the vecmem types
-    typename detector_type::view_t _detector_data;
-};
-
-/// Stand-alone function that @returns the detector view for transfer to
-/// device.
-///
-/// @param detector the detector to be tranferred
-template <typename metadata_t>
-inline detector_view<metadata_t> get_data(
-    detector<metadata_t, host_container_types> &det) {
-    return {det};
-}
-
-/// Stand-alone function that @returns the detector buffer for transfer to
-/// device.
-///
-/// @param detector the detector to be transferred
-template <typename metadata_t>
-inline detector_buffer<metadata_t> get_buffer(
-    detector<metadata_t, host_container_types> &det,
-    vecmem::memory_resource &mr, vecmem::copy &cpy,
-    detray::copy cpy_type = detray::copy::sync,
-    vecmem::data::buffer_type buff_type =
-        vecmem::data::buffer_type::fixed_size) {
-    return {det, mr, cpy, cpy_type, buff_type};
-}
-
-/// Stand-alone function that @returns the detector view for transfer to
-/// device.
-///
-/// @param detector the detector to be transferred
-template <typename metadata_t>
-inline detector_view<metadata_t> get_data(
-    detector_buffer<metadata_t> &det_buff) {
-    return {det_buff};
-}
 
 }  // namespace detray

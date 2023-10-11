@@ -47,7 +47,7 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
     // Create the toy geometry and bfield
     auto [det, names] = create_toy_geometry(host_mr, toy_cfg);
     vector3 B{0.f, 0.f, 2.f * unit<scalar>::T};
-    auto bfield = test::create_const_field(B);
+    auto bfield = bfield::create_const_field(B);
 
     // Create RK stepper
     rk_stepper_type s;
@@ -106,7 +106,7 @@ static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
     // Create the toy geometry
     auto [det, names] = create_toy_geometry(bp_mng_mr, toy_cfg);
     vector3 B{0.f, 0.f, 2.f * unit<scalar>::T};
-    auto bfield = test::create_const_field(B);
+    auto bfield = bfield::create_const_field(B);
 
     // Get detector data
     auto det_data = detray::get_data(det);

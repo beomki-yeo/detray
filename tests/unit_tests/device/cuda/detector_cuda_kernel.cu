@@ -12,7 +12,7 @@ namespace detray {
 
 // cuda kernel to copy sub-detector objects
 __global__ void detector_test_kernel(
-    typename detector_host_t::detector_view_type det_data,
+    typename detector_host_t::view_type det_data,
     vecmem::data::vector_view<volume_t> volumes_data,
     vecmem::data::vector_view<surface_t> surfaces_data,
     vecmem::data::vector_view<transform3_t> transforms_data,
@@ -84,7 +84,7 @@ __global__ void detector_test_kernel(
 }
 
 /// implementation of the test function for detector
-void detector_test(typename detector_host_t::detector_view_type det_data,
+void detector_test(typename detector_host_t::view_type det_data,
                    vecmem::data::vector_view<volume_t> volumes_data,
                    vecmem::data::vector_view<surface_t> surfaces_data,
                    vecmem::data::vector_view<transform3_t> transforms_data,

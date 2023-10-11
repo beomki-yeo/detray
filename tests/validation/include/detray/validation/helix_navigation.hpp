@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/detectors/bfield.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
@@ -18,7 +19,6 @@
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/inspectors.hpp"
 #include "detray/validation/detail/navigation_check_helper.hpp"
-#include "tests/common/bfield.hpp"
 #include "tests/common/test_base/fixture_base.hpp"
 #include "tests/common/tools/particle_gun.hpp"
 
@@ -100,7 +100,7 @@ class helix_navigation : public test::fixture_base<> {
         // Navigation with inspection
         using navigator_t = navigator<detector_t, inspector_t, intersection_t>;
         // Runge-Kutta stepper
-        using bfield_t = test::const_field_t;
+        using bfield_t = bfield::const_field_t;
         using stepper_t = rk_stepper<typename bfield_t::view_t, transform3_t>;
         // Propagator with pathlimit aborter
         using actor_chain_t = actor_chain<dtuple, pathlimit_aborter>;
@@ -113,7 +113,7 @@ class helix_navigation : public test::fixture_base<> {
         const typename fixture_type::point3 B{0.f * unit<scalar_t>::T,
                                               0.f * unit<scalar_t>::T,
                                               2.f * unit<scalar_t>::T};
-        bfield_t hom_bfield = test::create_const_field(B);
+        bfield_t hom_bfield = bfield::create_const_field(B);
 
         // Iterate through uniformly distributed momentum directions
         std::size_t n_tracks{0u};

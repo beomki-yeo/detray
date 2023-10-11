@@ -7,6 +7,7 @@
 
 // Project include(s)
 #include "detray/definitions/units.hpp"
+#include "detray/detectors/bfield.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
@@ -24,7 +25,6 @@
 #include "detray/test/types.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/inspectors.hpp"
-#include "tests/common/bfield.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -170,7 +170,7 @@ class PropagatorWithRkStepper
 TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
 
     // Constant magnetic field type
-    using bfield_t = test::const_field_t;
+    using bfield_t = bfield::const_field_t;
 
     // Toy detector
     using detector_t = detector<toy_metadata>;
@@ -193,7 +193,7 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
     // Build detector and magnetic field
     const auto [det, names] = create_toy_geometry(host_mr, toy_cfg);
 
-    const bfield_t bfield = test::create_const_field(std::get<2>(GetParam()));
+    const bfield_t bfield = bfield::create_const_field(std::get<2>(GetParam()));
 
     // Propagator is built from the stepper and navigator
     propagator_t p(stepper_t{}, navigator_t{});
@@ -271,7 +271,7 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
 TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
 
     // Magnetic field map using nearest neightbor interpolation
-    using bfield_t = test::inhom_field_t;
+    using bfield_t = bfield::inhom_field_t;
 
     // Toy detector
     using detector_t = detector<toy_metadata>;
@@ -293,7 +293,7 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
 
     // Build detector and magnetic field
     const auto [det, names] = create_toy_geometry(host_mr, toy_cfg);
-    const bfield_t bfield = test::create_inhom_field();
+    const bfield_t bfield = bfield::create_inhom_field();
 
     // Propagator is built from the stepper and navigator
     propagator_t p(stepper_t{}, navigator_t{});

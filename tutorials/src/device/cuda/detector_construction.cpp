@@ -8,6 +8,8 @@
 // Project include(s)
 #include "detector_construction.hpp"
 
+#include "detray/detectors/bfield.hpp"
+
 // Vecmem include(s)
 #include <vecmem/memory/cuda/device_memory_resource.hpp>
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
@@ -93,7 +95,7 @@ int main() {
                                          vecmem::data::buffer_type::fixed_size);
 
     // Assemble the detector buffer
-    auto det_custom_buff = detray::detector_buffer<detray::toy_metadata>(
+    auto det_custom_buff = typename decltype(det_host)::buffer_type(
         std::move(vol_buff), std::move(trf_buff), std::move(msk_buff),
         std::move(mat_buff), std::move(sf_buff), std::move(sf_lkp_buff),
         std::move(vgrid_buff));

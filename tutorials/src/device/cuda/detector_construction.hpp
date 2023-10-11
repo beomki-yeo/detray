@@ -8,7 +8,6 @@
 #pragma once
 
 // Project include(s).
-#include "detray/definitions/bfield_backends.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/tutorial/types.hpp"
@@ -24,6 +23,6 @@ using mask_id = typename detector_host_t::masks::id;
 using acc_id = typename detector_host_t::sf_finders::id;
 
 /// Detector construction tutorial function (prints some detector statistics)
-void print(typename detector_host_t::detector_view_type det_data);
+void print(typename detector_host_t::view_type det_data);
 
 }  // namespace detray::tutorial

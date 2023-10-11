@@ -10,6 +10,7 @@
 // Project include(s).
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/detectors/bfield.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
@@ -22,7 +23,6 @@
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/tracks/tracks.hpp"
-#include "tests/common/bfield.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>
@@ -159,7 +159,7 @@ inline auto run_propagation_host(vecmem::memory_resource *mr,
                   vecmem::jagged_vector<free_matrix>> {
 
     // Construct propagator from stepper and navigator
-    auto stepr = rk_stepper_t<covfie::field<bfield_bknd_t>::view_t>{};
+    auto stepr = rk_stepper_t<typename covfie::field<bfield_bknd_t>::view_t>{};
     auto nav = navigator_t<detector_host_t>{};
 
     using propagator_host_t =
