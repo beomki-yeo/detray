@@ -16,8 +16,6 @@
 
 #include "vecmem/utils/cuda/copy.hpp"
 
-// System
-
 /// Prepare the data and move it to device
 int main() {
     // VecMem memory resource(s)
@@ -28,11 +26,10 @@ int main() {
         detray::tutorial::vector3{0. * detray::unit<detray::scalar>::T,
                                   0. * detray::unit<detray::scalar>::T,
                                   2. * detray::unit<detray::scalar>::T};
+    auto bfield = test::create_const_field(B);
 
     // Create the toy geometry
     detray::toy_det_config toy_cfg{};
-    toy_cfg.bfield_vec(B);
-
     auto [det, names] = detray::create_toy_geometry(mng_mr, toy_cfg);
 
     // Create the vector of initial track parameters
@@ -59,7 +56,7 @@ int main() {
     }
 
     // Get data for device
-    auto det_data = detray::get_data<detray::bfield::const_bknd_t>(det);
+    auto det_data = detray::get_data<>(det);
     auto tracks_data = detray::get_data(tracks);
 
     // Create navigator candidates buffer
@@ -69,5 +66,6 @@ int main() {
     copy.setup(candidates_buffer);
 
     // Run the propagator test for GPU device
-    detray::tutorial::propagation(det_data, tracks_data, candidates_buffer);
+    detray::tutorial::propagation(det_data, tracks_data, candidates_buffer,
+                                  field_view);
 }
