@@ -12,11 +12,6 @@ if("${CMAKE_CXX_COMPILER_ID}" MATCHES "MSVC")
    detray_add_flag(CMAKE_CXX_FLAGS "/Zc:__cplusplus")
 endif()
 
-# Respect infinity expressions for IntelLLVM
-if("${CMAKE_CXX_COMPILER_ID}" MATCHES "IntelLLVM")
-   detray_add_flag(CMAKE_CXX_FLAGS "-fhonor-infinities")
-endif()
-
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
    detray_add_flag(CMAKE_CXX_FLAGS "-Wshorten-64-to-32")
 endif()
@@ -30,6 +25,7 @@ if(("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU") OR
    detray_add_flag(CMAKE_CXX_FLAGS "-Wextra")
    detray_add_flag(CMAKE_CXX_FLAGS "-Wshadow")
    detray_add_flag(CMAKE_CXX_FLAGS "-Wunused-local-typedefs")
+   detray_add_flag(CMAKE_CXX_FLAGS "-ffast-math")
 
    # More rigorous tests for the Debug builds.
    detray_add_flag(CMAKE_CXX_FLAGS_DEBUG "-Werror")

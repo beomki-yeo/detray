@@ -28,7 +28,7 @@ if( "${CMAKE_CUDA_COMPILER_ID}" MATCHES "NVIDIA" )
 detray_add_flag( CMAKE_CUDA_FLAGS "--expt-relaxed-constexpr" )
 
 # Turn off fast math for the device code.
-detray_add_flag( CMAKE_CUDA_FLAGS "-fmad=false" )
+detray_add_flag( CMAKE_CUDA_FLAGS "-fmad=true" )
 endif()
 
 # Make CUDA generate debug symbols for the device code as well in a debug
