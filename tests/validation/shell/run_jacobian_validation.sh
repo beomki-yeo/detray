@@ -78,6 +78,12 @@ fi
 
 echo "Starting rk toleracne iteration..."
 
+# Remove the old directories
+for (( i=0; i < ${n_threads}; ++i ))
+do
+    rm -rf "${PWD}/${i}"
+done
+
 for (( i=0; i < ${n_threads}; ++i ))
 do
     n_skips=`expr ${i} \* ${n_tracks_per_thread}`
@@ -133,8 +139,11 @@ file_names=()
 
 # Get the unique file names
 for full_name in ./0/*; do
-    name=$(basename -- "$full_name")
-    file_names+=(${name})
+    # Only take csv format files
+    if [[ "$file" == *".csv" ]];then
+        name=$(basename -- "$full_name")
+        file_names+=(${name})
+    fi
 done
 
 output_dir=merged
