@@ -33,14 +33,7 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     dir = vector::normalize(dir);
     track.set_dir(dir);
 
-    auto qop = track.qop();
-    if (!(this->_mat == vacuum<scalar_type>())) {
-        // Reference: Eq (82) of https://doi.org/10.1016/0029-554X(81)90063-X
-        qop =
-            qop + h_6 * (sd.dqopds[0u] + 2.f * (sd.dqopds[1u] + sd.dqopds[2u]) +
-                         sd.dqopds[3u]);
-    }
-    track.set_qop(qop);
+    track.set_qop(sd.qop_last);
 
     // Update path length
     this->_path_length += h;
@@ -189,21 +182,21 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
         getter::element(D, e_free_qoverp, e_free_qoverp) = 1.f;
     } else {
         // Pre-calculate dqop_n/dqop1
-        const scalar_type d2qop1dsdqop1 = this->d2qopdsdqop(sd.qop[0u]);
+        const scalar_type d2qop1dsdqop1 = this->d2qopdsdqop(sd.qop_first);
 
         dqopn_dqop[0u] = 1.f;
         dqopn_dqop[1u] = 1.f + half_h * d2qop1dsdqop1;
 
         const scalar_type d2qop2dsdqop1 =
-            this->d2qopdsdqop(sd.qop[1u]) * (1.f + half_h * d2qop1dsdqop1);
+            this->d2qopdsdqop(sd.qop_middle) * (1.f + half_h * d2qop1dsdqop1);
         dqopn_dqop[2u] = 1.f + half_h * d2qop2dsdqop1;
 
         const scalar_type d2qop3dsdqop1 =
-            this->d2qopdsdqop(sd.qop[2u]) * (1.f + half_h * d2qop2dsdqop1);
+            this->d2qopdsdqop(sd.qop_middle) * (1.f + half_h * d2qop2dsdqop1);
         dqopn_dqop[3u] = 1.f + h * d2qop3dsdqop1;
 
         const scalar_type d2qop4dsdqop1 =
-            this->d2qopdsdqop(sd.qop[3u]) * (1.f + h * d2qop3dsdqop1);
+            this->d2qopdsdqop(sd.qop_last) * (1.f + h * d2qop3dsdqop1);
 
         /*-----------------------------------------------------------------
          * Calculate the first terms of d(dqop_n/ds)/dqop1
@@ -221,23 +214,23 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
          * Calculate the first terms of dk_n/dt1
         -------------------------------------------------------------------*/
         // dk1/dt1
-        dkndt[0u] =
-            sd.qop[0u] * mat_helper().column_wise_cross(dkndt[0u], sd.b_first);
+        dkndt[0u] = sd.qop_first *
+                    mat_helper().column_wise_cross(dkndt[0u], sd.b_first);
 
         // dk2/dt1
         dkndt[1u] = dkndt[1u] + half_h * dkndt[0u];
-        dkndt[1u] =
-            sd.qop[1u] * mat_helper().column_wise_cross(dkndt[1u], sd.b_middle);
+        dkndt[1u] = sd.qop_middle *
+                    mat_helper().column_wise_cross(dkndt[1u], sd.b_middle);
 
         // dk3/dt1
         dkndt[2u] = dkndt[2u] + half_h * dkndt[1u];
-        dkndt[2u] =
-            sd.qop[2u] * mat_helper().column_wise_cross(dkndt[2u], sd.b_middle);
+        dkndt[2u] = sd.qop_middle *
+                    mat_helper().column_wise_cross(dkndt[2u], sd.b_middle);
 
         // dk4/dt1
         dkndt[3u] = dkndt[3u] + h * dkndt[2u];
         dkndt[3u] =
-            sd.qop[3u] * mat_helper().column_wise_cross(dkndt[3u], sd.b_last);
+            sd.qop_last * mat_helper().column_wise_cross(dkndt[3u], sd.b_last);
 
         /*-----------------------------------------------------------------
          * Calculate the first and second terms of dk_n/dqop1
@@ -248,16 +241,16 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
         // dk2/dqop1
         dkndqop[1u] =
             dqopn_dqop[1u] * vector::cross(sd.t[1u], sd.b_middle) +
-            sd.qop[1u] * half_h * vector::cross(dkndqop[0u], sd.b_middle);
+            sd.qop_middle * half_h * vector::cross(dkndqop[0u], sd.b_middle);
 
         // dk3/dqop1
         dkndqop[2u] =
             dqopn_dqop[2u] * vector::cross(sd.t[2u], sd.b_middle) +
-            sd.qop[2u] * half_h * vector::cross(dkndqop[1u], sd.b_middle);
+            sd.qop_middle * half_h * vector::cross(dkndqop[1u], sd.b_middle);
 
         // dk4/dqop1
         dkndqop[3u] = dqopn_dqop[3u] * vector::cross(sd.t[3u], sd.b_last) +
-                      sd.qop[3u] * h * vector::cross(dkndqop[2u], sd.b_last);
+                      sd.qop_last * h * vector::cross(dkndqop[2u], sd.b_last);
     } else {
 
         // Positions at four stages
@@ -282,32 +275,32 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
          * Calculate all terms of dk_n/dt1
         -------------------------------------------------------------------*/
         // dk1/dt1
-        dkndt[0u] =
-            sd.qop[0u] * mat_helper().column_wise_cross(dkndt[0u], sd.b_first);
+        dkndt[0u] = sd.qop_first *
+                    mat_helper().column_wise_cross(dkndt[0u], sd.b_first);
 
         // dk2/dt1
         dkndt[1u] = dkndt[1u] + half_h * dkndt[0u];
-        dkndt[1u] =
-            sd.qop[1u] * mat_helper().column_wise_cross(dkndt[1u], sd.b_middle);
+        dkndt[1u] = sd.qop_middle *
+                    mat_helper().column_wise_cross(dkndt[1u], sd.b_middle);
         dBdt_tmp = dBdr[1u] * (half_h * I33 + h2 * 0.125f * dkndt[0u]);
-        dkndt[1u] = dkndt[1u] - sd.qop[1u] * mat_helper().column_wise_cross(
-                                                 dBdt_tmp, sd.t[1u]);
+        dkndt[1u] = dkndt[1u] - sd.qop_middle * mat_helper().column_wise_cross(
+                                                    dBdt_tmp, sd.t[1u]);
 
         // dk3/dt1
         dkndt[2u] = dkndt[2u] + half_h * dkndt[1u];
-        dkndt[2u] =
-            sd.qop[2u] * mat_helper().column_wise_cross(dkndt[2u], sd.b_middle);
+        dkndt[2u] = sd.qop_middle *
+                    mat_helper().column_wise_cross(dkndt[2u], sd.b_middle);
         dBdt_tmp = dBdr[2u] * (half_h * I33 + h2 * 0.125f * dkndt[0u]);
-        dkndt[2u] = dkndt[2u] - sd.qop[2u] * mat_helper().column_wise_cross(
-                                                 dBdt_tmp, sd.t[2u]);
+        dkndt[2u] = dkndt[2u] - sd.qop_middle * mat_helper().column_wise_cross(
+                                                    dBdt_tmp, sd.t[2u]);
 
         // dk4/dt1
         dkndt[3u] = dkndt[3u] + h * dkndt[2u];
         dkndt[3u] =
-            sd.qop[3u] * mat_helper().column_wise_cross(dkndt[3u], sd.b_last);
+            sd.qop_last * mat_helper().column_wise_cross(dkndt[3u], sd.b_last);
         dBdt_tmp = dBdr[3u] * (h * I33 + h2 * 0.5f * dkndt[2u]);
-        dkndt[3u] = dkndt[3u] - sd.qop[3u] * mat_helper().column_wise_cross(
-                                                 dBdt_tmp, sd.t[3u]);
+        dkndt[3u] = dkndt[3u] - sd.qop_last * mat_helper().column_wise_cross(
+                                                  dBdt_tmp, sd.t[3u]);
 
         /*-----------------------------------------------------------------
          * Calculate all terms of dk_n/dqop1
@@ -318,27 +311,27 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
         // dk2/dqop1
         dkndqop[1u] =
             dqopn_dqop[1u] * vector::cross(sd.t[1u], sd.b_middle) +
-            sd.qop[1u] * half_h * vector::cross(dkndqop[0u], sd.b_middle);
+            sd.qop_middle * half_h * vector::cross(dkndqop[0u], sd.b_middle);
         dkndqop[1u] =
             dkndqop[1u] -
-            sd.qop[1u] *
+            sd.qop_middle *
                 vector::cross(h2 * 0.125f * dBdr[1u] * dkndqop[0u], sd.t[1u]);
 
         // dk3/dqop1
         dkndqop[2u] =
             dqopn_dqop[2u] * vector::cross(sd.t[2u], sd.b_middle) +
-            sd.qop[2u] * half_h * vector::cross(dkndqop[1u], sd.b_middle);
+            sd.qop_middle * half_h * vector::cross(dkndqop[1u], sd.b_middle);
         dkndqop[2u] =
             dkndqop[2u] -
-            sd.qop[2u] *
+            sd.qop_middle *
                 vector::cross(h2 * 0.125f * dBdr[2u] * dkndqop[0u], sd.t[2u]);
 
         // dk4/dqop1
         dkndqop[3u] = dqopn_dqop[3u] * vector::cross(sd.t[3u], sd.b_last) +
-                      sd.qop[3u] * h * vector::cross(dkndqop[2u], sd.b_last);
+                      sd.qop_last * h * vector::cross(dkndqop[2u], sd.b_last);
         dkndqop[3u] =
             dkndqop[3u] -
-            sd.qop[3u] *
+            sd.qop_last *
                 vector::cross(h2 * 0.5f * dBdr[3u] * dkndqop[2u], sd.t[3u]);
 
         /*-----------------------------------------------------------------
@@ -346,28 +339,28 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
         -------------------------------------------------------------------*/
         // dk1/dr1
         dkndr[0u] =
-            -sd.qop[0u] * mat_helper().column_wise_cross(dBdr[0u], sd.t[0u]);
+            -sd.qop_first * mat_helper().column_wise_cross(dBdr[0u], sd.t[0u]);
 
         // dk2/dr1
-        dkndr[1u] = sd.qop[1u] * mat_helper().column_wise_cross(
-                                     half_h * dkndr[0u], sd.b_middle);
+        dkndr[1u] = sd.qop_middle * mat_helper().column_wise_cross(
+                                        half_h * dkndr[0u], sd.b_middle);
         dBdr_tmp = dBdr[1u] * (I33 + h2 * 0.125 * dkndr[0u]);
-        dkndr[1u] = dkndr[1u] - sd.qop[1u] * mat_helper().column_wise_cross(
-                                                 dBdr_tmp, sd.t[1u]);
+        dkndr[1u] = dkndr[1u] - sd.qop_middle * mat_helper().column_wise_cross(
+                                                    dBdr_tmp, sd.t[1u]);
 
         // dk3/dr1
-        dkndr[2u] = sd.qop[2u] * mat_helper().column_wise_cross(
-                                     half_h * dkndr[1u], sd.b_middle);
+        dkndr[2u] = sd.qop_middle * mat_helper().column_wise_cross(
+                                        half_h * dkndr[1u], sd.b_middle);
         dBdr_tmp = dBdr[2u] * (I33 + h2 * 0.125 * dkndr[0u]);
-        dkndr[2u] = dkndr[2u] - sd.qop[2u] * mat_helper().column_wise_cross(
-                                                 dBdr_tmp, sd.t[2u]);
+        dkndr[2u] = dkndr[2u] - sd.qop_middle * mat_helper().column_wise_cross(
+                                                    dBdr_tmp, sd.t[2u]);
 
         // dk4/dr1
-        dkndr[3u] = sd.qop[3u] *
+        dkndr[3u] = sd.qop_last *
                     mat_helper().column_wise_cross(h * dkndr[2u], sd.b_last);
         dBdr_tmp = dBdr[3u] * (I33 + h2 * 0.5 * dkndr[2u]);
-        dkndr[3u] = dkndr[3u] - sd.qop[3u] * mat_helper().column_wise_cross(
-                                                 dBdr_tmp, sd.t[3u]);
+        dkndr[3u] = dkndr[3u] - sd.qop_last * mat_helper().column_wise_cross(
+                                                  dBdr_tmp, sd.t[3u]);
 
         // Set dF/dr1 and dG/dr1
         auto dFdr = matrix_operator().template identity<3, 3>();
@@ -397,45 +390,6 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     matrix_operator().set_block(D, dGdqop, 4u, 7u);
 
     this->_jac_transport = D * this->_jac_transport;
-}
-
-template <typename magnetic_field_t, typename transform3_t,
-          typename constraint_t, typename policy_t, typename inspector_t,
-          template <typename, std::size_t> class array_t>
-DETRAY_HOST_DEVICE auto
-detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
-                   inspector_t, array_t>::state::
-    evaluate_dqopds(const std::size_t i,
-                    const typename transform3_t::scalar_type h,
-                    const scalar dqopds_prev,
-                    const detray::stepping::config<scalar_type>& cfg) ->
-    typename transform3_t::scalar_type {
-
-    const auto& track = this->_track;
-    const scalar_type qop = track.qop();
-    auto& sd = this->_step_data;
-
-    if (this->_mat == detray::vacuum<scalar_type>()) {
-        sd.qop[i] = qop;
-        return 0.f;
-    } else {
-
-        if (cfg.use_mean_loss) {
-            if (i == 0u) {
-                sd.qop[i] = qop;
-            } else {
-
-                // qop_n is calculated recursively like the direction of
-                // evaluate_dtds.
-                //
-                // https://doi.org/10.1016/0029-554X(81)90063-X says:
-                // "For y  we  have  similar  formulae  as  for x, for y' and
-                // \lambda similar  formulae as for  x'"
-                sd.qop[i] = qop + h * dqopds_prev;
-            }
-        }
-        return this->dqopds(sd.qop[i]);
-    }
 }
 
 template <typename magnetic_field_t, typename transform3_t,
@@ -540,7 +494,7 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
         return this->dqopds(this->_track.qop());
     }
 
-    return this->_step_data.dqopds[3u];
+    return this->dqopds(this->_step_data.qop_last);
 }
 
 template <typename magnetic_field_t, typename transform3_t,
@@ -647,20 +601,22 @@ DETRAY_HOST_DEVICE bool detray::rk_stepper<
     sd.b_first[0] = bvec[0];
     sd.b_first[1] = bvec[1];
     sd.b_first[2] = bvec[2];
+    sd.qop_first = stepping().qop();
 
     // qop should be recalcuated at every point
     // Reference: Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
-    sd.dqopds[0u] = stepping.evaluate_dqopds(0u, 0.f, 0.f, cfg);
+    // sd.dqopds[0u] = stepping.evaluate_dqopds(0u, 0.f, 0.f, cfg);
     sd.dtds[0u] = stepping.evaluate_dtds(sd.b_first, 0u, 0.f,
-                                         vector3{0.f, 0.f, 0.f}, sd.qop[0u]);
+                                         vector3{0.f, 0.f, 0.f}, sd.qop_first);
 
     const auto try_rk4 = [&](const scalar_type& h) -> bool {
         // State the square and half of the step size
         const scalar_type h2{h * h};
         const scalar_type half_h{h * 0.5f};
+        const scalar_type quarter_h{h * 0.25f};
+        const scalar_type h_6{h * static_cast<scalar_type>(1. / 6.)};
 
         // Second Runge-Kutta point
-        // qop should be recalcuated at every point
         // Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
         const vector3 pos1 =
             pos + half_h * sd.t[0u] + h2 * 0.125f * sd.dtds[0u];
@@ -669,21 +625,50 @@ DETRAY_HOST_DEVICE bool detray::rk_stepper<
         sd.b_middle[1] = bvec1[1];
         sd.b_middle[2] = bvec1[2];
 
-        sd.dqopds[1u] =
-            stepping.evaluate_dqopds(1u, half_h, sd.dqopds[0u], cfg);
+        // Obtain qop
+        if (!(stepping._mat == detray::vacuum<scalar_type>())) {
+            std::array<scalar, 4u> dqopds_middle;
+            dqopds_middle[0u] = stepping.dqopds(sd.qop_first);
+            dqopds_middle[1u] =
+                stepping.dqopds(sd.qop_first + quarter_h + dqopds_middle[0u]);
+            dqopds_middle[2u] =
+                stepping.dqopds(sd.qop_first + quarter_h + dqopds_middle[1u]);
+            dqopds_middle[3u] =
+                stepping.dqopds(sd.qop_first + half_h + dqopds_middle[2u]);
+
+            std::array<scalar, 4u> dqopds_last;
+            dqopds_last[0u] = dqopds_middle[0u];
+            dqopds_last[1u] =
+                stepping.dqopds(sd.qop_first + half_h + dqopds_last[0u]);
+            dqopds_last[2u] =
+                stepping.dqopds(sd.qop_first + half_h + dqopds_last[1u]);
+            dqopds_last[3u] =
+                stepping.dqopds(sd.qop_first + h + dqopds_last[2u]);
+
+            sd.qop_middle =
+                sd.qop_first +
+                h_6 * (dqopds_middle[0u] +
+                       2.f * (dqopds_middle[1u] + dqopds_middle[2u]) +
+                       dqopds_middle[3u]);
+
+            sd.qop_last = sd.qop_first +
+                          h_6 * (dqopds_last[0u] +
+                                 2.f * (dqopds_last[1u] + dqopds_last[2u]) +
+                                 dqopds_last[3u]);
+        } else {
+            sd.qop_middle = sd.qop_first;
+            sd.qop_last = sd.qop_first;
+        }
+
         sd.dtds[1u] = stepping.evaluate_dtds(sd.b_middle, 1u, half_h,
-                                             sd.dtds[0u], sd.qop[1u]);
+                                             sd.dtds[0u], sd.qop_middle);
 
         // Third Runge-Kutta point
-        // qop should be recalcuated at every point
         // Reference: Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
-        sd.dqopds[2u] =
-            stepping.evaluate_dqopds(2u, half_h, sd.dqopds[1u], cfg);
         sd.dtds[2u] = stepping.evaluate_dtds(sd.b_middle, 2u, half_h,
-                                             sd.dtds[1u], sd.qop[2u]);
+                                             sd.dtds[1u], sd.qop_middle);
 
         // Last Runge-Kutta point
-        // qop should be recalcuated at every point
         // Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
         const vector3 pos2 = pos + h * sd.t[0u] + h2 * 0.5f * sd.dtds[2u];
         const auto bvec2 = magnetic_field.at(pos2[0], pos2[1], pos2[2]);
@@ -691,9 +676,8 @@ DETRAY_HOST_DEVICE bool detray::rk_stepper<
         sd.b_last[1] = bvec2[1];
         sd.b_last[2] = bvec2[2];
 
-        sd.dqopds[3u] = stepping.evaluate_dqopds(3u, h, sd.dqopds[2u], cfg);
         sd.dtds[3u] =
-            stepping.evaluate_dtds(sd.b_last, 3u, h, sd.dtds[2u], sd.qop[3u]);
+            stepping.evaluate_dtds(sd.b_last, 3u, h, sd.dtds[2u], sd.qop_last);
 
         // Compute and check the local integration error estimate
         // @Todo

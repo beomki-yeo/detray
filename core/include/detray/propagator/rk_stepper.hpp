@@ -77,14 +77,16 @@ class rk_stepper final
             vector3 b_first{0.f, 0.f, 0.f};
             vector3 b_middle{0.f, 0.f, 0.f};
             vector3 b_last{0.f, 0.f, 0.f};
+            scalar qop_first{0.f};
+            scalar qop_middle{0.f};
+            scalar qop_last{0.f};
+
             // t = tangential direction = dr/ds
             std::array<vector3, 4u> t;
             // q/p
-            std::array<scalar_type, 4u> qop;
+            // std::array<scalar_type, 4u> qop;
             // dt/ds = d^2r/ds^2 = q/p ( t X B )
             std::array<vector3, 4u> dtds;
-            // d(q/p)/ds
-            std::array<scalar_type, 4u> dqopds;
         } _step_data;
 
         /// Magnetic field view
@@ -101,13 +103,6 @@ class rk_stepper final
         DETRAY_HOST_DEVICE
         inline void advance_jacobian(
             const stepping::config<scalar_type>& cfg = {});
-
-        /// evaulate dqopds for a given step size and material
-        DETRAY_HOST_DEVICE
-        inline scalar_type evaluate_dqopds(
-            const std::size_t i, const typename transform3_t::scalar_type h,
-            const scalar dqopds_prev,
-            const detray::stepping::config<scalar_type>& cfg);
 
         /// evaulate dtds for runge kutta stepping
         DETRAY_HOST_DEVICE
