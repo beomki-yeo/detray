@@ -86,7 +86,8 @@ class rk_stepper final
             // dt/ds = d^2r/ds^2 = q/p ( t X B )
             std::array<vector3, 4u> dtds;
             // four qop_n for qop_last
-            std::array<scalar_type, 4u> qop;
+            std::array<scalar_type, 4u> qopn_middle;
+            std::array<scalar_type, 4u> qopn_last;
         } _step_data;
 
         /// Magnetic field view

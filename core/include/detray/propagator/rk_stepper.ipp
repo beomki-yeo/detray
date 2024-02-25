@@ -184,33 +184,32 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
         // Pre-calculate dqop_n/dqop1
         const scalar_type d2qop1dsdqop1 = this->d2qopdsdqop(sd.qop_first);
 
-        dqopn_dqop[0u] = 1.f;
-        dqopn_dqop[1u] = 1.f + half_h * d2qop1dsdqop1;
+        std::array<scalar_type, 4u> d2qopndsdqop1_middle;
+        std::array<scalar_type, 4u> d2qopndsdqop1_last;
 
-        const scalar_type d2qop2dsdqop1 =
-            this->d2qopdsdqop(sd.qop_middle) * (1.f + half_h * d2qop1dsdqop1);
-        dqopn_dqop[2u] = 1.f + half_h * d2qop2dsdqop1;
+        d2qopndsdqop1_middle[0u] = d2qop1dsdqop1;
+        d2qopndsdqop1_middle[1u] = this->d2qopdsdqop(sd.qopn_middle[1u]);
+        d2qopndsdqop1_middle[2u] = this->d2qopdsdqop(sd.qopn_middle[2u]);
+        d2qopndsdqop1_middle[3u] = this->d2qopdsdqop(sd.qopn_middle[3u]);
 
-        const scalar_type d2qop3dsdqop1 =
-            this->d2qopdsdqop(sd.qop_middle) * (1.f + half_h * d2qop2dsdqop1);
-        dqopn_dqop[3u] = 1.f + h * d2qop3dsdqop1;
+        d2qopndsdqop1_last[0u] = d2qop1dsdqop1;
+        d2qopndsdqop1_last[1u] = this->d2qopdsdqop(sd.qopn_last[1u]);
+        d2qopndsdqop1_last[2u] = this->d2qopdsdqop(sd.qopn_last[2u]);
+        d2qopndsdqop1_last[3u] = this->d2qopdsdqop(sd.qopn_last[3u]);
 
-        /*-----------------------------------------------------------------
-         * Calculate the first terms of d(dqop_n/ds)/dqop1
-        -------------------------------------------------------------------*/
+        dqopn_dqop[1u] =
+            1.f +
+            h_6 * (d2qopndsdqop1_middle[0u] +
+                   2.f * (d2qopndsdqop1_middle[1u] + d2qopndsdqop1_middle[2u]) +
+                   d2qopndsdqop1_middle[3u]);
+        dqopn_dqop[2u] = dqopn_dqop[1u];
+        dqopn_dqop[3u] =
+            1.f +
+            h_6 * (d2qopndsdqop1_last[0u] +
+                   2.f * (d2qopndsdqop1_last[1u] + d2qopndsdqop1_last[2u]) +
+                   d2qopndsdqop1_last[3u]);
 
-        const scalar_type d2qop1dsdqop1_last = d2qop1dsdqop1;
-        const scalar_type d2qop2dsdqop1_last =
-            this->d2qopdsdqop(sd.qop[1u]) * (1.f + half_h * d2qop1dsdqop1_last);
-        const scalar_type d2qop3dsdqop1_last =
-            this->d2qopdsdqop(sd.qop[2u]) * (1.f + half_h * d2qop2dsdqop1_last);
-        const scalar_type d2qop4dsdqop1_last =
-            this->d2qopdsdqop(sd.qop[3u]) * (1.f + h * d2qop3dsdqop1_last);
-
-        getter::element(D, e_free_qoverp, e_free_qoverp) =
-            1.f + h_6 * (d2qop1dsdqop1_last +
-                         2.f * (d2qop2dsdqop1_last + d2qop3dsdqop1_last) +
-                         d2qop4dsdqop1_last);
+        getter::element(D, e_free_qoverp, e_free_qoverp) = dqopn_dqop[3u];
     }
 
     // Calculate in the case of not considering B field gradient
@@ -612,7 +611,7 @@ DETRAY_HOST_DEVICE bool detray::rk_stepper<
     // qop should be recalcuated at every point
     // Reference: Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
     sd.dtds[0u] = stepping.evaluate_dtds(sd.b_first, 0u, 0.f,
-                                         vector3{0.f, 0.f, 0.f}, sd.qop[0u]);
+                                         vector3{0.f, 0.f, 0.f}, sd.qop_first);
 
     const auto try_rk4 = [&](const scalar_type& h) -> bool {
         // State the square and half of the step size
@@ -633,23 +632,24 @@ DETRAY_HOST_DEVICE bool detray::rk_stepper<
         // Obtain qop
         if (!(stepping._mat == detray::vacuum<scalar_type>())) {
             std::array<scalar, 4u> dqopds_middle;
+            sd.qopn_middle[0u] = sd.qop_first;
             dqopds_middle[0u] = stepping.dqopds(sd.qop_first);
-            dqopds_middle[1u] =
-                stepping.dqopds(sd.qop_first + quarter_h * dqopds_middle[0u]);
-            dqopds_middle[2u] =
-                stepping.dqopds(sd.qop_first + quarter_h * dqopds_middle[1u]);
-            dqopds_middle[3u] =
-                stepping.dqopds(sd.qop_first + half_h * dqopds_middle[2u]);
+            sd.qopn_middle[1u] = sd.qop_first + quarter_h * dqopds_middle[0u];
+            dqopds_middle[1u] = stepping.dqopds(sd.qopn_middle[1u]);
+            sd.qopn_middle[2u] = sd.qop_first + quarter_h * dqopds_middle[1u];
+            dqopds_middle[2u] = stepping.dqopds(sd.qopn_middle[2u]);
+            sd.qopn_middle[3u] = sd.qop_first + half_h * dqopds_middle[2u];
+            dqopds_middle[3u] = stepping.dqopds(sd.qopn_middle[3u]);
 
             std::array<scalar, 4u> dqopds_last;
-            sd.qop[0u] = sd.qop_first;
+            sd.qopn_last[0u] = sd.qop_first;
             dqopds_last[0u] = dqopds_middle[0u];
-            sd.qop[1u] = sd.qop_first + half_h * dqopds_last[0u];
-            dqopds_last[1u] = stepping.dqopds(sd.qop[1u]);
-            sd.qop[2u] = sd.qop_first + half_h * dqopds_last[1u];
-            dqopds_last[2u] = stepping.dqopds(sd.qop[2u]);
-            sd.qop[3u] = sd.qop_first + h * dqopds_last[2u];
-            dqopds_last[3u] = stepping.dqopds(sd.qop[3u]);
+            sd.qopn_last[1u] = sd.qop_first + half_h * dqopds_last[0u];
+            dqopds_last[1u] = stepping.dqopds(sd.qopn_last[1u]);
+            sd.qopn_last[2u] = sd.qop_first + half_h * dqopds_last[1u];
+            dqopds_last[2u] = stepping.dqopds(sd.qopn_last[2u]);
+            sd.qopn_last[3u] = sd.qop_first + h * dqopds_last[2u];
+            dqopds_last[3u] = stepping.dqopds(sd.qopn_last[3u]);
 
             sd.qop_middle =
                 sd.qop_first +
