@@ -80,13 +80,13 @@ class rk_stepper final
             scalar qop_first{0.f};
             scalar qop_middle{0.f};
             scalar qop_last{0.f};
-
+    
             // t = tangential direction = dr/ds
             std::array<vector3, 4u> t;
-            // q/p
-            // std::array<scalar_type, 4u> qop;
             // dt/ds = d^2r/ds^2 = q/p ( t X B )
             std::array<vector3, 4u> dtds;
+            // four qop_n for qop_last
+            std::array<scalar_type, 4u> qop;
         } _step_data;
 
         /// Magnetic field view

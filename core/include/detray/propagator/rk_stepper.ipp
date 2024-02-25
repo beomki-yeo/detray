@@ -195,16 +195,22 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
             this->d2qopdsdqop(sd.qop_middle) * (1.f + half_h * d2qop2dsdqop1);
         dqopn_dqop[3u] = 1.f + h * d2qop3dsdqop1;
 
-        const scalar_type d2qop4dsdqop1 =
-            this->d2qopdsdqop(sd.qop_last) * (1.f + h * d2qop3dsdqop1);
-
         /*-----------------------------------------------------------------
          * Calculate the first terms of d(dqop_n/ds)/dqop1
         -------------------------------------------------------------------*/
 
+        const scalar_type d2qop1dsdqop1_last = d2qop1dsdqop1;
+        const scalar_type d2qop2dsdqop1_last =
+            this->d2qopdsdqop(sd.qop[1u]) * (1.f + half_h * d2qop1dsdqop1_last);
+        const scalar_type d2qop3dsdqop1_last =
+            this->d2qopdsdqop(sd.qop[2u]) * (1.f + half_h * d2qop2dsdqop1_last);
+        const scalar_type d2qop4dsdqop1_last =
+            this->d2qopdsdqop(sd.qop[3u]) * (1.f + h * d2qop3dsdqop1_last);
+
         getter::element(D, e_free_qoverp, e_free_qoverp) =
-            1.f + h_6 * (d2qop1dsdqop1 + 2.f * (d2qop2dsdqop1 + d2qop3dsdqop1) +
-                         d2qop4dsdqop1);
+            1.f + h_6 * (d2qop1dsdqop1_last +
+                         2.f * (d2qop2dsdqop1_last + d2qop3dsdqop1_last) +
+                         d2qop4dsdqop1_last);
     }
 
     // Calculate in the case of not considering B field gradient
@@ -494,7 +500,7 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
         return this->dqopds(this->_track.qop());
     }
 
-    return this->dqopds(this->_step_data.qop_last);
+    return this->dqopds(_step_data.qop_last);
 }
 
 template <typename magnetic_field_t, typename transform3_t,
@@ -605,9 +611,8 @@ DETRAY_HOST_DEVICE bool detray::rk_stepper<
 
     // qop should be recalcuated at every point
     // Reference: Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
-    // sd.dqopds[0u] = stepping.evaluate_dqopds(0u, 0.f, 0.f, cfg);
     sd.dtds[0u] = stepping.evaluate_dtds(sd.b_first, 0u, 0.f,
-                                         vector3{0.f, 0.f, 0.f}, sd.qop_first);
+                                         vector3{0.f, 0.f, 0.f}, sd.qop[0u]);
 
     const auto try_rk4 = [&](const scalar_type& h) -> bool {
         // State the square and half of the step size
@@ -630,20 +635,21 @@ DETRAY_HOST_DEVICE bool detray::rk_stepper<
             std::array<scalar, 4u> dqopds_middle;
             dqopds_middle[0u] = stepping.dqopds(sd.qop_first);
             dqopds_middle[1u] =
-                stepping.dqopds(sd.qop_first + quarter_h + dqopds_middle[0u]);
+                stepping.dqopds(sd.qop_first + quarter_h * dqopds_middle[0u]);
             dqopds_middle[2u] =
-                stepping.dqopds(sd.qop_first + quarter_h + dqopds_middle[1u]);
+                stepping.dqopds(sd.qop_first + quarter_h * dqopds_middle[1u]);
             dqopds_middle[3u] =
-                stepping.dqopds(sd.qop_first + half_h + dqopds_middle[2u]);
+                stepping.dqopds(sd.qop_first + half_h * dqopds_middle[2u]);
 
             std::array<scalar, 4u> dqopds_last;
+            sd.qop[0u] = sd.qop_first;
             dqopds_last[0u] = dqopds_middle[0u];
-            dqopds_last[1u] =
-                stepping.dqopds(sd.qop_first + half_h + dqopds_last[0u]);
-            dqopds_last[2u] =
-                stepping.dqopds(sd.qop_first + half_h + dqopds_last[1u]);
-            dqopds_last[3u] =
-                stepping.dqopds(sd.qop_first + h + dqopds_last[2u]);
+            sd.qop[1u] = sd.qop_first + half_h * dqopds_last[0u];
+            dqopds_last[1u] = stepping.dqopds(sd.qop[1u]);
+            sd.qop[2u] = sd.qop_first + half_h * dqopds_last[1u];
+            dqopds_last[2u] = stepping.dqopds(sd.qop[2u]);
+            sd.qop[3u] = sd.qop_first + h * dqopds_last[2u];
+            dqopds_last[3u] = stepping.dqopds(sd.qop[3u]);
 
             sd.qop_middle =
                 sd.qop_first +
