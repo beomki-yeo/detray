@@ -78,6 +78,7 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     // Half step length
     const scalar_type h2{h * h};
     const scalar_type half_h{h * 0.5f};
+    const scalar_type quarter_h{h * 0.25f};
     const scalar_type h_6{h * static_cast<scalar_type>(1. / 6.)};
 
     // 3X3 Identity matrix
@@ -188,20 +189,27 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
         std::array<scalar_type, 4u> d2qopndsdqop1_last;
 
         d2qopndsdqop1_middle[0u] = d2qop1dsdqop1;
-        d2qopndsdqop1_middle[1u] = this->d2qopdsdqop(sd.qopn_middle[1u]);
-        d2qopndsdqop1_middle[2u] = this->d2qopdsdqop(sd.qopn_middle[2u]);
-        d2qopndsdqop1_middle[3u] = this->d2qopdsdqop(sd.qopn_middle[3u]);
+        d2qopndsdqop1_middle[1u] = this->d2qopdsdqop(sd.qopn_middle[1u]) *
+                                   (1.f + quarter_h * d2qopndsdqop1_middle[0u]);
+        d2qopndsdqop1_middle[2u] = this->d2qopdsdqop(sd.qopn_middle[2u]) *
+                                   (1.f + quarter_h * d2qopndsdqop1_middle[1u]);
+        d2qopndsdqop1_middle[3u] = this->d2qopdsdqop(sd.qopn_middle[3u]) *
+                                   (1.f + half_h * d2qopndsdqop1_middle[2u]);
 
         d2qopndsdqop1_last[0u] = d2qop1dsdqop1;
-        d2qopndsdqop1_last[1u] = this->d2qopdsdqop(sd.qopn_last[1u]);
-        d2qopndsdqop1_last[2u] = this->d2qopdsdqop(sd.qopn_last[2u]);
-        d2qopndsdqop1_last[3u] = this->d2qopdsdqop(sd.qopn_last[3u]);
+        d2qopndsdqop1_last[1u] = this->d2qopdsdqop(sd.qopn_last[1u]) *
+                                 (1.f + half_h * d2qopndsdqop1_last[0u]);
+        d2qopndsdqop1_last[2u] = this->d2qopdsdqop(sd.qopn_last[2u]) *
+                                 (1.f + half_h * d2qopndsdqop1_last[1u]);
+        d2qopndsdqop1_last[3u] = this->d2qopdsdqop(sd.qopn_last[3u]) *
+                                 (1.f + h * d2qopndsdqop1_last[2u]);
 
         dqopn_dqop[1u] =
             1.f +
-            h_6 * (d2qopndsdqop1_middle[0u] +
-                   2.f * (d2qopndsdqop1_middle[1u] + d2qopndsdqop1_middle[2u]) +
-                   d2qopndsdqop1_middle[3u]);
+            0.5f * h_6 *
+                (d2qopndsdqop1_middle[0u] +
+                 2.f * (d2qopndsdqop1_middle[1u] + d2qopndsdqop1_middle[2u]) +
+                 d2qopndsdqop1_middle[3u]);
         dqopn_dqop[2u] = dqopn_dqop[1u];
         dqopn_dqop[3u] =
             1.f +
@@ -227,7 +235,7 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
         dkndt[1u] = sd.qop_middle *
                     mat_helper().column_wise_cross(dkndt[1u], sd.b_middle);
 
-        // dk3/dt1
+        // dk3/dt111
         dkndt[2u] = dkndt[2u] + half_h * dkndt[1u];
         dkndt[2u] = sd.qop_middle *
                     mat_helper().column_wise_cross(dkndt[2u], sd.b_middle);
@@ -651,11 +659,11 @@ DETRAY_HOST_DEVICE bool detray::rk_stepper<
             sd.qopn_last[3u] = sd.qop_first + h * dqopds_last[2u];
             dqopds_last[3u] = stepping.dqopds(sd.qopn_last[3u]);
 
-            sd.qop_middle =
-                sd.qop_first +
-                h_6 * (dqopds_middle[0u] +
-                       2.f * (dqopds_middle[1u] + dqopds_middle[2u]) +
-                       dqopds_middle[3u]);
+            sd.qop_middle = sd.qop_first +
+                            0.5f * h_6 *
+                                (dqopds_middle[0u] +
+                                 2.f * (dqopds_middle[1u] + dqopds_middle[2u]) +
+                                 dqopds_middle[3u]);
 
             sd.qop_last = sd.qop_first +
                           h_6 * (dqopds_last[0u] +

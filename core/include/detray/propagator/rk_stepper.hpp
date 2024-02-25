@@ -80,7 +80,7 @@ class rk_stepper final
             scalar qop_first{0.f};
             scalar qop_middle{0.f};
             scalar qop_last{0.f};
-    
+
             // t = tangential direction = dr/ds
             std::array<vector3, 4u> t;
             // dt/ds = d^2r/ds^2 = q/p ( t X B )
