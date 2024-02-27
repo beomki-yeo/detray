@@ -188,30 +188,31 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     if (!cfg.use_eloss_gradient) {
         getter::element(D, e_free_qoverp, e_free_qoverp) = 1.f;
     } else {
-        // Pre-calculate dqop_n/dqop1
-        const scalar_type d2qop1dsdqop1 = this->d2qopdsdqop(sd.qop[0u]);
+        // Pre-calculate dqopn/dqopn
+        const std::array<scalar_type, 4u> d2qopn_dsdqopn{
+            this->d2qopdsdqop(sd.qop[0u]), this->d2qopdsdqop(sd.qop[1u]),
+            this->d2qopdsdqop(sd.qop[2u]), this->d2qopdsdqop(sd.qop[3u])};
 
         dqopn_dqop[0u] = 1.f;
-        dqopn_dqop[1u] = 1.f + half_h * d2qop1dsdqop1;
+        dqopn_dqop[1u] = 1.f + half_h * d2qopn_dsdqopn[0u];
+        dqopn_dqop[2u] = (1.f / dqopn_dqop[1u] + half_h * d2qopn_dsdqopn[1u]) *
+                         dqopn_dqop[1u];
+        dqopn_dqop[3u] =
+            (1.f / dqopn_dqop[2u] + h * d2qopn_dsdqopn[2u]) * dqopn_dqop[2u];
 
-        const scalar_type d2qop2dsdqop1 =
-            this->d2qopdsdqop(sd.qop[1u]) * (1.f + half_h * d2qop1dsdqop1);
-        dqopn_dqop[2u] = 1.f + half_h * d2qop2dsdqop1;
-
-        const scalar_type d2qop3dsdqop1 =
-            this->d2qopdsdqop(sd.qop[2u]) * (1.f + half_h * d2qop2dsdqop1);
-        dqopn_dqop[3u] = 1.f + h * d2qop3dsdqop1;
-
-        const scalar_type d2qop4dsdqop1 =
-            this->d2qopdsdqop(sd.qop[3u]) * (1.f + h * d2qop3dsdqop1);
+        const scalar_type d2qop1_dsdqop1 = d2qopn_dsdqopn[0u];
+        const scalar_type d2qop2_dsdqop1 = d2qopn_dsdqopn[1u] * dqopn_dqop[1u];
+        const scalar_type d2qop3_dsdqop1 = d2qopn_dsdqopn[2u] * dqopn_dqop[2u];
+        const scalar_type d2qop4_dsdqop1 = d2qopn_dsdqopn[3u] * dqopn_dqop[3u];
 
         /*-----------------------------------------------------------------
          * Calculate the first terms of d(dqop_n/ds)/dqop1
         -------------------------------------------------------------------*/
 
         getter::element(D, e_free_qoverp, e_free_qoverp) =
-            1.f + h_6 * (d2qop1dsdqop1 + 2.f * (d2qop2dsdqop1 + d2qop3dsdqop1) +
-                         d2qop4dsdqop1);
+            1.f +
+            h_6 * (d2qop1_dsdqop1 + 2.f * (d2qop2_dsdqop1 + d2qop3_dsdqop1) +
+                   d2qop4_dsdqop1);
     }
 
     // Calculate in the case of not considering B field gradient
