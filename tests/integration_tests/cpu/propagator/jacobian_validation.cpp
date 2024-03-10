@@ -703,8 +703,11 @@ void evaluate_jacobian_difference(
         << " Phi: " << reference_param.phi()
         << " Theta: " << reference_param.theta()
         << " Mom [GeV/c]: " << reference_param.p();
-    ASSERT_GE(bound_getter.m_path_length, 0.f);
+    ASSERT_TRUE(detector_length > 0.f);
+    ASSERT_GE(bound_getter.m_path_length, 0.5f * detector_length);
+    ASSERT_LE(bound_getter.m_path_length, 1.5f * detector_length);
     ASSERT_LE(bound_getter.m_path_length, max_detector_length + 200.f);
+    ASSERT_GE(bound_getter.m_abs_path_length, bound_getter.m_path_length);
 
     const auto reference_jacobian = bound_getter.m_jacobi;
 
@@ -792,7 +795,10 @@ void evaluate_jacobian_difference(
     file << math::log10(on_surface_tolerance) << ",";
 
     // Overstep tolerance
-    file << overstep_tolerance;
+    file << overstep_tolerance << ",";
+
+    // Detector length
+    file << detector_length;
 
     file << std::endl;
 }
@@ -846,9 +852,12 @@ void evaluate_covariance_transport(
         << " Phi: " << reference_param.phi()
         << " Theta: " << reference_param.theta()
         << " Mom [GeV/c]: " << reference_param.p();
-    ASSERT_GE(bound_getter.m_path_length, 0.f);
+    ASSERT_TRUE(detector_length > 0.f);
+    ASSERT_GE(bound_getter.m_path_length, 0.5f * detector_length);
+    ASSERT_LE(bound_getter.m_path_length, 1.5f * detector_length);
     ASSERT_LE(bound_getter.m_path_length, max_detector_length + 200.f);
-
+    ASSERT_GE(bound_getter.m_abs_path_length, bound_getter.m_path_length);
+    
     // Get smeared initial bound vector
     const bound_vector_type smeared_ini_vec =
         get_smeared_bound_vector(ini_cov, reference_param.vector());
@@ -946,7 +955,10 @@ void evaluate_covariance_transport(
     file << math::log10(on_surface_tolerance) << ",";
 
     // Overstep tolerance
-    file << overstep_tolerance;
+    file << overstep_tolerance << ",";
+
+    // Detector length
+    file << detector_length;
 
     file << std::endl;
 }
@@ -1248,7 +1260,10 @@ void setup_csv_header_jacobian(std::ofstream& file) {
     file << "log10_intersection_tolerance,";
 
     // Overstep tolerance [mm]
-    file << "overstep_tolerance";
+    file << "overstep_tolerance,";
+
+    // Detector length [mm]
+    file << "detector_length";
 
     file << std::endl;
 }
@@ -1308,7 +1323,10 @@ void setup_csv_header_covariance(std::ofstream& file) {
     file << "log10_intersection_tolerance,";
 
     // Overstep tolerance [mm]
-    file << "overstep_tolerance";
+    file << "overstep_tolerance,";
+
+    // Detector length [mm]
+    file << "detector_length";
 
     file << std::endl;
 }
