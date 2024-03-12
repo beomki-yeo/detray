@@ -89,7 +89,7 @@ constexpr const scalar mask_scaler = 1.5f;
 // Euler angles for the surface rotation
 std::uniform_real_distribution<scalar> rand_alpha(0.f,
                                                   2.f * constant<scalar>::pi);
-std::uniform_real_distribution<scalar> rand_cosbeta(0.5, 1.f);
+std::uniform_real_distribution<scalar> rand_cosbeta(constant<scalar>::inv_sqrt2, 1.f);
 std::uniform_int_distribution<int> rand_bool(0, 1);
 std::uniform_real_distribution<scalar> rand_gamma(0.f,
                                                   2.f * constant<scalar>::pi);
