@@ -203,8 +203,9 @@ class helix {
         // Get drdt
         auto drdt = Z33;
 
-        const scalar sin_ks = math::sin(_K * s);
-        const scalar cos_ks = math::cos(_K * s);
+        const scalar Ks = _K * s;
+        const scalar sin_ks = math::sin(Ks);
+        const scalar cos_ks = math::cos(Ks);
         drdt = drdt + sin_ks / _K * I33;
 
         matrix_type<3, 1> H0 = matrix_operator().template zero<3, 1>();
@@ -214,7 +215,7 @@ class helix {
         const matrix_type<1, 3> H0_T = matrix_operator().transpose(H0);
         const matrix_type<3, 3> H0H0_T = H0 * H0_T;
 
-        drdt = drdt + (_K * s - sin_ks) / _K * H0H0_T;
+        drdt = drdt + (Ks - sin_ks) / _K * H0H0_T;
 
         drdt = drdt +
                (cos_ks - 1.f) / _K * mat_helper().column_wise_cross(I33, _h0);
@@ -230,14 +231,15 @@ class helix {
         matrix_operator().set_block(ret, dtdt, e_free_dir0, e_free_dir0);
 
         // Get drdl
-        vector3 drdl = 1.f / _qop * (s * this->dir(s) + _pos - this->pos(s));
+        const vector3 pos_helix = this->pos(s);
+        vector3 drdl = 1.f / _qop * (s * this->dir(s) + _pos - pos_helix);
 
         matrix_operator().set_block(ret, drdl, e_free_pos0, e_free_qoverp);
 
         // Get dtdl
-        vector3 dtdl =
-            -_B * s *
-            (sin_ks * (H0H0_T - I33) * _t0 + cos_ks * vector::cross(_h0, _t0));
+        vector3 dtdl = (Ks) / _qop *
+                       (vector::cross(_h0, _t0) + _K * (_pos - pos_helix) +
+                        Ks * H0H0_T * _t0);
 
         matrix_operator().set_block(ret, dtdl, e_free_dir0, e_free_qoverp);
 
