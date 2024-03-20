@@ -43,7 +43,7 @@ double y_min = -15;
 double y_max = 10;
 double y_margin = 0;
 double header_size = 0.05;
-std::array<float, 4> ldim{0.587646, 0.62395, 0.942404, 0.880252};
+std::array<float, 4> ldim{0.592, 0.62395, 0.942404, 0.880252};
 double pad_x0 = 0.00;
 double pad_x1 = 1;
 double pad_y0 = 0.00;
