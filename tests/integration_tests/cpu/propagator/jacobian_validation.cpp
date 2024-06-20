@@ -72,7 +72,7 @@ std::mt19937_64 mt1(rd());
 std::mt19937_64 mt2(rd());
 
 // Momentum range
-constexpr const scalar min_mom = 0.5f * unit<scalar>::GeV;
+constexpr const scalar min_mom = 0.05f * unit<scalar>::GeV;
 constexpr const scalar max_mom = 100.f * unit<scalar>::GeV;
 
 // Detector length generator
