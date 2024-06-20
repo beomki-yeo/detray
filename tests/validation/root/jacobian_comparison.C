@@ -297,17 +297,17 @@ void jacobian_comparison() {
     inhom_rect_material_histo->Draw("hist P ");
     rect_legend->AddEntry(inhom_rect_material_histo, RKN_ODD_CsI.c_str(), "p");
 
-    auto inhom_rect_histo = get_histogram("inhom_rect", 20, markers[1u], dummy);
+    auto inhom_rect_histo = get_histogram("inhom_rect", 25, markers[1u], dummy);
     inhom_rect_histo->SetMarkerColor(hues[1u]);
     inhom_rect_histo->Draw("hist P same");
     rect_legend->AddEntry(inhom_rect_histo, RKN_ODD.c_str(), "p");
 
-    auto const_rect_histo = get_histogram("const_rect", 15, markers[2u], dummy);
+    auto const_rect_histo = get_histogram("const_rect", 25, markers[2u], dummy);
     const_rect_histo->SetMarkerColor(hues[2u]);
     const_rect_histo->Draw("hist P same");
     rect_legend->AddEntry(const_rect_histo, RKN_homogeneous.c_str(), "p");
 
-    auto helix_rect_histo = get_histogram("helix_rect", 15, markers[3u], dummy);
+    auto helix_rect_histo = get_histogram("helix_rect", 25, markers[3u], dummy);
     helix_rect_histo->SetMarkerColor(hues[3u]);
     helix_rect_histo->Draw("hist P same");
     rect_legend->AddEntry(helix_rect_histo, Helix_homogeneous.c_str(), "p");
@@ -341,17 +341,17 @@ void jacobian_comparison() {
     inhom_wire_material_histo->Draw("hist P ");
     wire_legend->AddEntry(inhom_wire_material_histo, RKN_ODD_CsI.c_str(), "p");
 
-    auto inhom_wire_histo = get_histogram("inhom_wire", 20, markers[1u], dummy);
+    auto inhom_wire_histo = get_histogram("inhom_wire", 25, markers[1u], dummy);
     inhom_wire_histo->SetMarkerColor(hues[1u]);
     inhom_wire_histo->Draw("hist P same");
     wire_legend->AddEntry(inhom_wire_histo, RKN_ODD.c_str(), "p");
 
-    auto const_wire_histo = get_histogram("const_wire", 15, markers[2u], dummy);
+    auto const_wire_histo = get_histogram("const_wire", 25, markers[2u], dummy);
     const_wire_histo->SetMarkerColor(hues[2u]);
     const_wire_histo->Draw("hist P same");
     wire_legend->AddEntry(const_wire_histo, RKN_homogeneous.c_str(), "p");
 
-    auto helix_wire_histo = get_histogram("helix_wire", 15, markers[3u], dummy);
+    auto helix_wire_histo = get_histogram("helix_wire", 25, markers[3u], dummy);
     helix_wire_histo->SetMarkerColor(hues[3u]);
     helix_wire_histo->Draw("hist P same");
     wire_legend->AddEntry(helix_wire_histo, Helix_homogeneous.c_str(), "p");
