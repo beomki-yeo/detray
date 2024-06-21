@@ -459,3 +459,89 @@ INSTANTIATE_TEST_SUITE_P(
     ::testing::Values(std::make_tuple(1.f * unit<scalar>::GeV),
                       std::make_tuple(10.f * unit<scalar>::GeV),
                       std::make_tuple(100.f * unit<scalar>::GeV)));
+
+// This tests the material functionalities
+TEST(CsI, CsI) {
+
+    // Interaction object
+    interaction<scalar> I;
+
+    // Zero incidence angle
+    const scalar cos_inc_ang{1.f};
+
+    // CsI
+    material_slab<scalar> slab(detray::cesium_iodide_with_ded<scalar>(),
+                               1.f * unit<scalar>::mm);
+
+    // Path segment in the material
+    const scalar path_segment{slab.path_segment(cos_inc_ang)};
+
+    // muon
+    constexpr int pdg = pdg_particle::eMuon;
+
+    // mass
+    constexpr scalar m{105.7f * unit<scalar>::MeV};
+
+    // 1cm loss
+    for (int i = 0; i <= 100; i++) {
+        // const scalar K = i * 0.01;
+        // const scalar E = K + m;
+        // const scalar p = std::sqrt(E * E - m * m);
+        scalar p{0.f};
+        if (i == 0) {
+            p = 0.5f;
+        } else {
+            p = static_cast<scalar>(i);
+        }
+        const scalar K = std::sqrt(m * m + p * p) - m;
+        const scalar qop = -1.f / p;
+
+        // Bethe Stopping power in MeV * cm^2 / g
+        const scalar eloss = I.compute_energy_loss_bethe_bloch(
+            path_segment, slab.get_material(), pdg, m, qop, -1.f);
+
+        const scalar dEdx{
+            I.compute_energy_loss_bethe_bloch(path_segment, slab.get_material(),
+                                              pdg, m, qop, -1.f) /
+            path_segment / slab.get_material().mass_density() /
+            (unit<scalar>::MeV * unit<scalar>::cm2 / unit<scalar>::g)};
+
+        detail::relativistic_quantities<scalar> rq(m, qop, -1);
+
+        std::cout << "Mom [GeV/c]: " << p << " Kintetic energy [GeV]: " << K
+                  << " BetaGamma: " << rq.m_betaGamma
+                  << " Mean loss per 1mm [GeV]: " << eloss
+                  << " dEdx [MeV *cm^2/g]: " << dEdx << std::endl;
+    }
+
+    std::array<scalar, 5u> Ps = {0.01f, 0.1f, 1.f, 10.f, 100.f};
+
+    for (const auto& p0 : Ps) {
+        // const scalar E = K + m;
+        // const scalar p = std::sqrt(E * E - m * m);
+        const scalar qop = -1.f / p0;
+
+        // Bethe Stopping power in MeV * cm^2 / g
+        const scalar eloss = I.compute_energy_loss_bethe_bloch(
+            path_segment, slab.get_material(), pdg, m, qop, -1.f);
+
+        // Landau Energy loss
+        const scalar mode{I.compute_energy_loss_landau(
+            path_segment, slab.get_material(), pdg, m, qop, -1.f)};
+
+        const scalar dEdx{
+            I.compute_energy_loss_bethe_bloch(path_segment, slab.get_material(),
+                                              pdg, m, qop, -1.f) /
+            path_segment / slab.get_material().mass_density() /
+            (unit<scalar>::MeV * unit<scalar>::cm2 / unit<scalar>::g)};
+
+        detail::relativistic_quantities<scalar> rq(m, qop, -1);
+
+        std::cout << "Momentum [GeV/c]: " << p0
+                  << " BetaGamma: " << rq.m_betaGamma
+                  << " dEdx [MeV *cm^2/g]: " << dEdx
+                  << " Mean w/ 1mm [GeV]: " << eloss
+                  << " Mode w/ 1mm [GeV]: " << mode
+                  << " Mode/Mean: " << mode / eloss << std::endl;
+    }
+}
