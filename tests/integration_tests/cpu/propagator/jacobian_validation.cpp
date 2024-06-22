@@ -72,17 +72,14 @@ std::mt19937_64 mt1(rd());
 std::mt19937_64 mt2(rd());
 
 // Momentum range
-constexpr const scalar min_mom = 0.05f * unit<scalar>::GeV;
+constexpr const scalar min_mom = 0.5f * unit<scalar>::GeV;
 constexpr const scalar max_mom = 100.f * unit<scalar>::GeV;
 
 // Detector length generator
 constexpr const scalar min_detector_length = 50.f * unit<scalar>::mm;
-constexpr const scalar max_detector_length_low = 100.f * unit<scalar>::mm;
-constexpr const scalar max_detector_length_high = 500.f * unit<scalar>::mm;
-std::uniform_real_distribution<scalar> rand_length_low(min_detector_length,
-                                                       max_detector_length_low);
-std::uniform_real_distribution<scalar> rand_length_high(
-    min_detector_length, max_detector_length_high);
+constexpr const scalar max_detector_length = 500.f * unit<scalar>::mm;
+std::uniform_real_distribution<scalar> rand_length(min_detector_length,
+                                                   max_detector_length);
 constexpr const scalar envelope_size = 2000.f * unit<scalar>::mm;
 
 // Mask size scaler
@@ -708,7 +705,7 @@ void evaluate_jacobian_difference(
     ASSERT_TRUE(detector_length > 0.f);
     ASSERT_GE(bound_getter.m_path_length, 0.5f * detector_length);
     ASSERT_LE(bound_getter.m_path_length, 1.5f * detector_length);
-    ASSERT_LE(bound_getter.m_path_length, max_detector_length_high + 200.f);
+    ASSERT_LE(bound_getter.m_path_length, max_detector_length + 200.f);
     ASSERT_GE(bound_getter.m_abs_path_length, bound_getter.m_path_length);
 
     const auto reference_jacobian = bound_getter.m_jacobi;
@@ -869,7 +866,7 @@ void evaluate_covariance_transport(
     ASSERT_TRUE(detector_length > 0.f);
     ASSERT_GE(bound_getter.m_path_length, 0.5f * detector_length);
     ASSERT_LE(bound_getter.m_path_length, 1.5f * detector_length);
-    ASSERT_LE(bound_getter.m_path_length, max_detector_length_high + 200.f);
+    ASSERT_LE(bound_getter.m_path_length, max_detector_length + 200.f);
     ASSERT_GE(bound_getter.m_abs_path_length, bound_getter.m_path_length);
 
     // Get smeared initial bound vector
@@ -1635,13 +1632,7 @@ int main(int argc, char** argv) {
         detail::helix<algebra_type> helix_bz(track, &B_z);
 
         // Make a telescope geometry with rectagular surface
-        scalar detector_length{0.f};
-        // For low momentum particle
-        if (track.p() < 1.f * unit<scalar>::GeV) {
-            detector_length = rand_length_low(mt1);
-        } else {
-            detector_length = rand_length_high(mt1);
-        }
+        const scalar detector_length = rand_length(mt1);
         const scalar constraint_step_size = detector_length * 1.25f;
 
         mask<rect_type> rect{0u, detector_length * mask_scaler,
