@@ -247,7 +247,7 @@ void draw_text(const std::string& text) {
         new TPaveLabel(x1, y1, x1 + float(w) / gPad->GetWw() * 0.62,
                        y1 + float(h) / gPad->GetWh() * 1.15, text.c_str());
 
-    plabel->SetTextFont(132);
+    plabel->SetTextFont(22);
     plabel->SetFillColor(kWhite);
     plabel->Draw();
 }
