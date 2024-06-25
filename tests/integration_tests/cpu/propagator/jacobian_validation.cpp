@@ -178,7 +178,6 @@ struct ridders_derivative {
                         err[j] = errt[j];
                         getter::element(differentiated_jacobian, j, i) =
                             Arr[j][q][p];
-
                         /*
                         // Please leave this for debug
                         if (j == e_bound_theta && i == e_bound_loc0) {
@@ -195,7 +194,6 @@ struct ridders_derivative {
         }
 
         for (unsigned int j = 0; j < 5u; j++) {
-
             /*
             // Please leave this for debug
             if (j == e_bound_phi && i == e_bound_loc1) {
@@ -206,7 +204,6 @@ struct ridders_derivative {
                           << "  " << safe[i] * err[j] << std::endl;
             }
             */
-
             if (math::abs(Arr[j][p][p] - Arr[j][p - 1][p - 1]) >=
                 safe[i] * err[j]) {
                 complete[j] = true;
