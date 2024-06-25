@@ -56,13 +56,13 @@ namespace {
 const vector3 B_z{0.f, 0.f, 1.996f * unit<scalar>::T};
 
 // Initial delta for numerical differentiaion
-const std::array<scalar, 5u> h_sizes_rect{3e0f, 3e0f, 2e-2f, 1e-3f, 1e-3f};
-const std::array<scalar, 5u> h_sizes_wire{3e0f, 3e0f, 2e-2f, 1e-3f, 1e-3f};
+const std::array<scalar, 5u> h_sizes_rect{1e0f, 1e0f, 2e-2f, 1e-3f, 1e-3f};
+const std::array<scalar, 5u> h_sizes_wire{1e0f, 1e0f, 2e-2f, 1e-3f, 1e-3f};
 
 // Ridders' algorithm setup
 constexpr const unsigned int Nt = 100u;
 const std::array<scalar, 5u> safe{5.0f, 5.0f, 5.0f, 5.0f, 5.0f};
-const std::array<scalar, 5u> con{1.2f, 1.2f, 1.2f, 1.2f, 1.2f};
+const std::array<scalar, 5u> con{1.1f, 1.1f, 1.1f, 1.1f, 1.1f};
 constexpr const scalar big = std::numeric_limits<scalar>::max();
 
 std::random_device rd;
@@ -178,10 +178,12 @@ struct ridders_derivative {
                         err[j] = errt[j];
                         getter::element(differentiated_jacobian, j, i) =
                             Arr[j][q][p];
+
                         /*
                         // Please leave this for debug
-                        if (j == e_bound_theta && i == e_bound_loc1) {
-                            std::cout << getter::element(
+                        if (j == e_bound_theta && i == e_bound_loc0) {
+                            std::cout << q << " " << p << " "
+                                      << getter::element(
                                              differentiated_jacobian, j, i)
                                       << "  " << math::abs(Arr[j][q][p])
                                       << std::endl;
@@ -193,9 +195,10 @@ struct ridders_derivative {
         }
 
         for (unsigned int j = 0; j < 5u; j++) {
+
             /*
             // Please leave this for debug
-            if (j == e_bound_theta && i == e_bound_loc1) {
+            if (j == e_bound_phi && i == e_bound_loc1) {
                 std::cout << getter::element(differentiated_jacobian, j, i)
                           << "  " << Arr[j][p][p] << "  "
                           << Arr[j][p - 1][p - 1] << "  "
@@ -203,6 +206,7 @@ struct ridders_derivative {
                           << "  " << safe[i] * err[j] << std::endl;
             }
             */
+
             if (math::abs(Arr[j][p][p] - Arr[j][p - 1][p - 1]) >=
                 safe[i] * err[j]) {
                 complete[j] = true;
