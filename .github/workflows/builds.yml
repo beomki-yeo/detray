@@ -111,7 +111,27 @@ jobs:
       if: "matrix.BUILD_TYPE == 'Release'"
       run: |
         source ${GITHUB_WORKSPACE}/tests/scripts/run_benchmarks.sh
-
+    - name: Propagation_Benchmark
+      if: "matrix.BUILD_TYPE == 'Release' && matrix.PLATFORM.NAME == 'CUDA' && matrix.SCALAR_TYPE == float"
+      run: |
+        ${GITHUB_WORKSPACE}/build/bin/detray_benchmark_cuda_array \
+         --benchmark_filter="unsync propagation/256" \
+         --benchmark_format=json \
+         | tee propagation_benchmark.json
+    # Download previous benchmark result from cache (if exists)
+    - name: Download previous benchmark data
+      uses: actions/cache@v4
+      with:
+        path: ./cache
+        key: ${{ runner.os }}-benchmark
+    - name: Store propagation benchmark result
+      if: "matrix.BUILD_TYPE == 'Release' && matrix.PLATFORM.NAME == 'CUDA'"
+      uses: benchmark-action/github-action-benchmark@v1
+      with:
+        tool: 'googlecpp'
+        output-file-path: propagation_benchmark.json
+        external-data-json-path: ./cache/benchmark-data.json
+        fail-on-alert: true
   # Containerised build jobs.
   device-container:
 
