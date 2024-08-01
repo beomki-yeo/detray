@@ -112,7 +112,7 @@ jobs:
       run: |
         source ${GITHUB_WORKSPACE}/tests/scripts/run_benchmarks.sh
     - name: Propagation_Benchmark
-      if: "matrix.BUILD_TYPE == 'Release' && matrix.PLATFORM.NAME == 'CUDA' && matrix.SCALAR_TYPE == float"
+      if: "matrix.BUILD_TYPE == 'Release' && matrix.PLATFORM.NAME == 'CUDA' && matrix.SCALAR_TYPE == 'float'"
       run: |
         ${GITHUB_WORKSPACE}/build/bin/detray_benchmark_cuda_array \
          --benchmark_filter="unsync propagation/256" \
