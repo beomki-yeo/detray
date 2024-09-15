@@ -72,7 +72,7 @@ TEST_P(DerivativeOfBetheEquationValidation,
     const scalar h = 1e-3f;
 
     // Iterate from 1 GeV to 10 GeV
-    for (unsigned int i = 10u; i < 100; i++) {
+    for (unsigned int i = 1u; i < 100; i++) {
         const scalar p =
             static_cast<scalar>(i) * 0.1f * detray::unit<scalar>::GeV;
         const scalar qop = q / p;
@@ -109,10 +109,9 @@ TEST_P(DerivativeOfBetheEquationValidation,
 
         const scalar evaluated_bethe =
             Interactor.derive_bethe_bloch(mat, ptc, rq);
-/*
+
         EXPECT_NEAR(numerical_bethe, evaluated_bethe,
                     math::abs(numerical_bethe * 0.01f));
-*/
     }
 }
 
