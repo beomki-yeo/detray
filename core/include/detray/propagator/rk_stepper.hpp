@@ -76,13 +76,19 @@ class rk_stepper final
             vector3_type b_last{0.f, 0.f, 0.f};
             // t = tangential direction = dr/ds
             std::array<vector3_type, 4u> t;
-            // q/p
-            std::array<scalar_type, 4u> qop;
             // dt/ds = d^2r/ds^2 = q/p ( t X B )
             std::array<vector3_type, 4u> dtds;
+            // dqopds at the last RK point
+            scalar_type dqopds_last = 0.f;
+        } _step_data;
+
+        /// Additional data with volume material
+        struct qop_data {
+            // q/p
+            std::array<scalar_type, 4u> qop;
             // d(q/p)/ds
             std::array<scalar_type, 4u> dqopds;
-        } _step_data;
+        };
 
         /// Magnetic field view
         const magnetic_field_t _magnetic_field;
@@ -97,9 +103,13 @@ class rk_stepper final
             return *_mat;
         }
 
-        /// Update the track state by Runge-Kutta-Nystrom integration.
+        /// Update the track state w/o volume material
         DETRAY_HOST_DEVICE
         inline void advance_track();
+
+        /// Update the track state w/ volume material
+        DETRAY_HOST_DEVICE
+        inline void advance_track(const qop_data& qd);
 
         /// Update the jacobian transport from free propagation
         DETRAY_HOST_DEVICE
@@ -123,6 +133,80 @@ class rk_stepper final
         DETRAY_HOST_DEVICE
         inline matrix_type<3, 3> evaluate_field_gradient(
             const point3_type& pos);
+
+        scalar_type scale_step_size(auto&& error_estimator,
+                                    const stepping::config& cfg) {
+
+            scalar_type error{1e20f};
+
+            // Whenever navigator::init() is called the step size is set to
+            // navigation path length (navigation()). We need to reduce it down
+            // to make error small enough
+            for (unsigned int i_t = 0u; i_t < cfg.max_rk_updates; i_t++) {
+                this->count_trials();
+
+                error = math::max(error_estimator(this->_step_size),
+                                  static_cast<scalar_type>(1e-20));
+
+                // Error is small enough
+                // ---> break and advance track
+                if (error <= 4.f * cfg.rk_error_tol) {
+                    break;
+                }
+                // Error estimate is too big
+                // ---> Make step size smaller and esimate error again
+                else {
+
+                    scalar_type step_size_scaling =
+                        math::sqrt(math::sqrt(cfg.rk_error_tol / error));
+
+                    this->_step_size *= step_size_scaling;
+
+                    // Run inspection while the stepsize is getting adjusted
+                    this->run_inspector(cfg, "Adjust stepsize: ", i_t + 1,
+                                        step_size_scaling);
+                }
+            }
+
+            return error;
+        }
+
+        void pre_step_update(const stepping::config& cfg) {
+
+            // Update navigation direction
+            const step::direction step_dir = this->_step_size >= 0.f
+                                                 ? step::direction::e_forward
+                                                 : step::direction::e_backward;
+            this->set_direction(step_dir);
+
+            // Check constraints
+            if (math::fabs(this->_step_size) >
+                math::fabs(
+                    this->constraints().template size<>(this->direction()))) {
+
+                // Run inspection before step size is cut
+                this->run_inspector(cfg, "Before constraint: ");
+
+                this->set_step_size(
+                    this->constraints().template size<>(this->direction()));
+            }
+        }
+
+        void post_step_update(const scalar_type error,
+                              const stepping::config& cfg) {
+
+            const scalar_type step_size_scaling =
+                static_cast<scalar_type>(math::min(
+                    math::max(math::sqrt(math::sqrt(cfg.rk_error_tol / error)),
+                              static_cast<scalar_type>(0.25)),
+                    static_cast<scalar_type>(4.)));
+
+            // Save the current step size
+            this->_prev_step_size = this->_step_size;
+
+            // Update the step size
+            this->_step_size *= step_size_scaling;
+        }
 
         /// Evaluate dtds, where t is the unit tangential direction
         DETRAY_HOST_DEVICE

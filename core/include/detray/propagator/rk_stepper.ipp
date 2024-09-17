@@ -36,19 +36,31 @@ detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
     dir = vector::normalize(dir);
     track.set_dir(dir);
 
-    auto qop = track.qop();
-    if (!(this->_mat == nullptr)) {
-        // Reference: Eq (82) of https://doi.org/10.1016/0029-554X(81)90063-X
-        qop =
-            qop + h_6 * (sd.dqopds[0u] + 2.f * (sd.dqopds[1u] + sd.dqopds[2u]) +
-                         sd.dqopds[3u]);
-    }
-    track.set_qop(qop);
-
     // Update path length
     this->_path_length += h;
     this->_abs_path_length += math::fabs(h);
     this->_s += h;
+}
+
+template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
+          typename policy_t, typename inspector_t,
+          template <typename, std::size_t> class array_t>
+DETRAY_HOST_DEVICE void detray::rk_stepper<
+    magnetic_field_t, algebra_t, constraint_t, policy_t, inspector_t,
+    array_t>::state::advance_track(const qop_data& qd) {
+
+    this->advance_track();
+
+    const scalar_type h_6{this->_step_size * static_cast<scalar_type>(1. / 6.)};
+
+    auto qop = this->_track.qop();
+    if (!(this->_mat == nullptr)) {
+        // Reference: Eq (82) of https://doi.org/10.1016/0029-554X(81)90063-X
+        qop =
+            qop + h_6 * (qd.dqopds[0u] + 2.f * (qd.dqopds[1u] + qd.dqopds[2u]) +
+                         qd.dqopds[3u]);
+    }
+    this->_track.set_qop(qop);
 }
 
 template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
@@ -520,7 +532,7 @@ detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
         return this->dqopds(this->_track.qop());
     }
 
-    return this->_step_data.dqopds[3u];
+    return this->_step_data.dqopds_last;
 }
 
 template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
@@ -626,20 +638,103 @@ DETRAY_HOST_DEVICE bool detray::rk_stepper<
 
     auto& sd = stepping._step_data;
 
-    scalar_type error_estimate{0.f};
-
     // First Runge-Kutta point
     const auto bvec = magnetic_field.at(pos[0], pos[1], pos[2]);
     sd.b_first[0] = bvec[0];
     sd.b_first[1] = bvec[1];
     sd.b_first[2] = bvec[2];
 
-    // qop should be recalcuated at every point
-    // Reference: Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
-    sd.dqopds[0u] = stepping.evaluate_dqopds(0u, 0.f, 0.f, cfg);
-    sd.dtds[0u] = stepping.evaluate_dtds(
-        sd.b_first, 0u, 0.f, vector3_type{0.f, 0.f, 0.f}, sd.qop[0u]);
+    scalar_type error_estimate{0.f};
 
+    // Calculate for vacuum
+    if (stepping._mat == nullptr) {
+
+        // dqopds_last = 0
+        sd.dqopds_last = 0.f;
+
+        const auto estimate_error = [&](const scalar_type& h) -> scalar {
+            // qop
+            const scalar_type qop = stepping._track.qop();
+
+            // State the square and half of the step size
+            const scalar_type h2{h * h};
+            const scalar_type half_h{h * 0.5f};
+
+            // Second Runge-Kutta point
+            const point3_type pos1 =
+                pos + half_h * sd.t[0u] + h2 * 0.125f * sd.dtds[0u];
+            const auto bvec1 = magnetic_field.at(pos1[0], pos1[1], pos1[2]);
+            sd.b_middle[0] = bvec1[0];
+            sd.b_middle[1] = bvec1[1];
+            sd.b_middle[2] = bvec1[2];
+
+            sd.dtds[1u] = stepping.evaluate_dtds(sd.b_middle, 1u, half_h,
+                                                 sd.dtds[0u], qop);
+
+            sd.dtds[2u] = stepping.evaluate_dtds(sd.b_middle, 2u, half_h,
+                                                 sd.dtds[1u], qop);
+
+            // Last Runge-Kutta point
+            const point3_type pos2 =
+                pos + h * sd.t[0u] + h2 * 0.5f * sd.dtds[2u];
+            const auto bvec2 = magnetic_field.at(pos2[0], pos2[1], pos2[2]);
+            sd.b_last[0] = bvec2[0];
+            sd.b_last[1] = bvec2[1];
+            sd.b_last[2] = bvec2[2];
+
+            sd.dtds[3u] =
+                stepping.evaluate_dtds(sd.b_last, 3u, h, sd.dtds[2u], qop);
+
+            // Compute and check the local integration error estimate
+            // @Todo
+            constexpr const scalar_type one_sixth{
+                static_cast<scalar_type>(1. / 6.)};
+            const vector3_type err_vec =
+                one_sixth * h2 *
+                (sd.dtds[0u] - sd.dtds[1u] - sd.dtds[2u] + sd.dtds[3u]);
+            error_estimate = getter::norm(err_vec);
+
+            return error_estimate;
+        };
+
+        const scalar_type error = stepping.scale_step_size(estimate_error, cfg);
+        stepping.pre_step_update(cfg);
+
+        // Advance track state
+        stepping.advance_track();
+
+        // Advance jacobian transport
+        if (cfg.do_covariance_transport) {
+            stepping.advance_jacobian(cfg);
+        }
+
+        // Call navigation update policy
+        typename rk_stepper::policy_type{}(stepping.policy_state(),
+                                           propagation);
+
+        stepping.post_step_update(error, cfg);
+
+        // Run final inspection
+        stepping.run_inspector(cfg, "Step complete: ");
+    }
+    // Calculate for volume material
+    else {
+
+        /*
+        qop_data qd;
+
+        // qop should be recalcuated at every point
+        // Reference: Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
+        qd.dqopds[0u] = stepping.evaluate_dqopds(0u, 0.f, 0.f, cfg);
+        qd.dtds[0u] = stepping.evaluate_dtds(
+            sd.b_first, 0u, 0.f, vector3_type{0.f, 0.f, 0.f}, qd.qop[0u]);
+
+        const auto estimate_error = [&](const scalar_type& h) -> scalar {
+
+        }
+        */
+    }
+    /*
     const auto estimate_error = [&](const scalar_type& h) -> scalar {
         // State the square and half of the step size
         const scalar_type h2{h * h};
@@ -662,7 +757,8 @@ DETRAY_HOST_DEVICE bool detray::rk_stepper<
 
         // Third Runge-Kutta point
         // qop should be recalcuated at every point
-        // Reference: Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
+        // Reference: Eq (84) of
+        // https://doi.org/10.1016/0029-554X(81)90063-X
         sd.dqopds[2u] =
             stepping.evaluate_dqopds(2u, half_h, sd.dqopds[1u], cfg);
         sd.dtds[2u] = stepping.evaluate_dtds(sd.b_middle, 2u, half_h,
@@ -695,9 +791,9 @@ DETRAY_HOST_DEVICE bool detray::rk_stepper<
 
     scalar_type error{1e20f};
 
-    // Whenever navigator::init() is called the step size is set to navigation
-    // path length (navigation()). We need to reduce it down to make error small
-    // enough
+    // Whenever navigator::init() is called the step size is set to
+    // navigation path length (navigation()). We need to reduce it down to
+    // make error small enough
     for (unsigned int i_t = 0u; i_t < cfg.max_rk_updates; i_t++) {
         stepping.count_trials();
 
@@ -766,6 +862,6 @@ DETRAY_HOST_DEVICE bool detray::rk_stepper<
 
     // Run final inspection
     stepping.run_inspector(cfg, "Step complete: ");
-
+    */
     return true;
 }
