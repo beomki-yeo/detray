@@ -85,9 +85,9 @@ class rk_stepper final
         /// Additional data with volume material
         struct qop_data {
             // q/p
-            std::array<scalar_type, 4u> qop;
+            std::array<scalar_type, 4u> qop{0.f,0.f,0.f,0.f};
             // d(q/p)/ds
-            std::array<scalar_type, 4u> dqopds;
+            std::array<scalar_type, 4u> dqopds{0.f,0.f,0.f,0.f};
         };
 
         /// Magnetic field view
@@ -115,12 +115,17 @@ class rk_stepper final
         DETRAY_HOST_DEVICE
         inline void advance_jacobian(const stepping::config& cfg = {});
 
+        DETRAY_HOST_DEVICE
+        inline void advance_jacobian(const qop_data& qd,
+                                     const stepping::config& cfg = {});
+
         /// evaulate dqopds for a given step size and material
         DETRAY_HOST_DEVICE
         inline scalar_type evaluate_dqopds(const std::size_t i,
                                            const scalar_type h,
                                            const scalar_type dqopds_prev,
-                                           const detray::stepping::config& cfg);
+                                           const detray::stepping::config& cfg,
+                                           qop_data& qd);
 
         /// evaulate dtds for runge kutta stepping
         DETRAY_HOST_DEVICE
